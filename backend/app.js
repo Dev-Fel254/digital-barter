@@ -15,6 +15,11 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+// Routes
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/items', require('./routes/items'));
+app.use('/api/trades', require('./routes/trades'));
+
 // Basic test route
 app.get('/api/test', (req, res) => {
     res.json({ message: 'API is working!' });
