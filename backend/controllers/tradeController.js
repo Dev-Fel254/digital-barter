@@ -107,8 +107,19 @@ exports.getTrade = async (req, res) => {
 exports.updateTradeStatus = async (req, res) => {
     try {
         const { status, meetupLocation, meetupTime, message } = req.body;
-        const trade = await Trade.findById(req.params.id);
+        
+        // Create update object
+        const updateObj = {
+            status: status
+        };
 
+        if (meetupLocation) updateObj.meetupLocation = meetupLocation;
+        if (meetupTime) updateObj.meetupTime = meetupTime;
+        if (status === 'Completed') updateObj.completedAt = Date.now();
+
+        // Find trade first to check authorization
+        const trade = await Trade.findById(req.params.id);
+        
         if (!trade) {
             return res.status(404).json({ message: 'Trade not found' });
         }
@@ -120,10 +131,6 @@ exports.updateTradeStatus = async (req, res) => {
         }
 
         // Update trade
-        trade.status = status || trade.status;
-        trade.meetupLocation = meetupLocation || trade.meetupLocation;
-        trade.meetupTime = meetupTime || trade.meetupTime;
-
         if (message) {
             trade.messages.push({
                 sender: req.user._id,
@@ -131,21 +138,18 @@ exports.updateTradeStatus = async (req, res) => {
             });
         }
 
-        if (status === 'Completed') {
-            trade.completedAt = Date.now();
-        }
+        Object.assign(trade, updateObj);
+        await trade.save();
 
-        const updatedTrade = await trade.save();
-        
-        // Populate and return
-        const populatedTrade = await Trade.findById(updatedTrade._id)
+        // Populate and return updated trade
+        const updatedTrade = await Trade.findById(req.params.id)
             .populate('initiator', 'username location')
             .populate('receiver', 'username location')
-            .populate('offeredItem', 'title images')
-            .populate('requestedItem', 'title images')
+            .populate('offeredItem', 'title images description')
+            .populate('requestedItem', 'title images description')
             .populate('messages.sender', 'username');
 
-        res.json(populatedTrade);
+        res.json(updatedTrade);
     } catch (error) {
         res.status(400).json({
             message: 'Error updating trade',
