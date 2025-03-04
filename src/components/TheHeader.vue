@@ -299,62 +299,44 @@ export default {
 
     validateRegisterForm() {
       this.errors = {};
-      if (!this.registerForm.firstName.trim()) {
+      
+      if (!this.registerForm.firstName?.trim()) {
         this.errors.firstName = 'First name is required';
+      } else if (this.registerForm.firstName.length < 2) {
+        this.errors.firstName = 'First name must be at least 2 characters';
       }
-      if (!this.registerForm.lastName.trim()) {
+
+      if (!this.registerForm.lastName?.trim()) {
         this.errors.lastName = 'Last name is required';
+      } else if (this.registerForm.lastName.length < 2) {
+        this.errors.lastName = 'Last name must be at least 2 characters';
       }
-      if (!this.registerForm.email.trim()) {
+
+      if (!this.registerForm.email?.trim()) {
         this.errors.email = 'Email is required';
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.registerForm.email)) {
         this.errors.email = 'Please enter a valid email';
       }
-      if (!this.registerForm.phone.trim()) {
+
+      if (!this.registerForm.phone?.trim()) {
         this.errors.phone = 'Phone number is required';
+      } else if (!/^\+?[\d\s-]+$/.test(this.registerForm.phone)) {
+        this.errors.phone = 'Please enter a valid phone number';
       }
+
       if (!this.registerForm.password) {
         this.errors.password = 'Password is required';
       } else if (this.registerForm.password.length < 8) {
         this.errors.password = 'Password must be at least 8 characters';
+      } else if (!/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*])/.test(this.registerForm.password)) {
+        this.errors.password = 'Password must contain at least one uppercase letter, one lowercase letter, one number and one special character';
       }
+
       if (this.registerForm.password !== this.registerForm.confirmPassword) {
         this.errors.confirmPassword = 'Passwords do not match';
       }
+
       return Object.keys(this.errors).length === 0;
-    },
-
-    async handleLogin() {
-      if (!this.validateLoginForm()) return;
-      
-      try {
-        this.isLoading = true;
-        // TODO: Replace with your actual API endpoint
-        const response = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(this.loginForm)
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.message || 'Login failed');
-        }
-
-        const data = await response.json();
-        // Store token in localStorage or Vuex store
-        localStorage.setItem('token', data.token);
-        
-        // Close modal and redirect
-        this.closeLoginModal();
-        this.$router.push('/dashboard');
-      } catch (error) {
-        this.errors.general = error.message;
-      } finally {
-        this.isLoading = false;
-      }
     },
 
     async handleRegister() {
@@ -362,25 +344,84 @@ export default {
 
       try {
         this.isLoading = true;
-        // TODO: Replace with your actual API endpoint
-        const response = await fetch('/api/auth/register', {
+        const response = await fetch('http://localhost:5000/api/auth/register', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(this.registerForm)
+          body: JSON.stringify({
+            firstName: this.registerForm.firstName,
+            lastName: this.registerForm.lastName,
+            username: this.registerForm.username || this.registerForm.email.split('@')[0],
+            email: this.registerForm.email,
+            phone: this.registerForm.phone,
+            password: this.registerForm.password,
+            location: 'Kenya'
+          })
         });
 
+        const data = await response.json();
+        console.log('Server response:', data); // For debugging
+
         if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.message || 'Registration failed');
+          throw new Error(data.message || 'Registration failed');
         }
 
         // Show success message and switch to login
-        this.$toast.success('Registration successful! Please login.');
-        this.switchToLogin();
+        alert('Registration successful! Please login.');
+        this.resetForms();
+        this.showLoginModal = true;
+        this.showRegisterModal = false;
       } catch (error) {
-        this.errors.general = error.message;
+        console.error('Registration error:', error);
+        this.errors.general = error.message || 'Failed to connect to the server. Please try again.';
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async handleLogin() {
+      if (!this.validateLoginForm()) return;
+      
+      try {
+        this.isLoading = true;
+        const response = await fetch('http://localhost:5000/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            username: this.loginForm.username, // Backend accepts username or email
+            password: this.loginForm.password
+          })
+        });
+
+        const data = await response.json();
+        console.log('Login response:', data); // For debugging
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Login failed');
+        }
+
+        // Store user data and token
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify({
+          id: data._id,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          username: data.username
+        }));
+
+        // Close modal and reset form
+        this.showLoginModal = false;
+        this.resetForms();
+        
+        // Reload to update auth state
+        window.location.reload();
+      } catch (error) {
+        console.error('Login error:', error);
+        this.errors.general = error.message || 'Failed to connect to the server';
       } finally {
         this.isLoading = false;
       }

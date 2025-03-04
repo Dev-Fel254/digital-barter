@@ -2,6 +2,16 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
+    firstName: {
+        type: String,
+        required: [true, 'First name is required'],
+        trim: true
+    },
+    lastName: {
+        type: String,
+        required: [true, 'Last name is required'],
+        trim: true
+    },
     username: {
         type: String,
         required: [true, 'Username is required'],
@@ -17,10 +27,15 @@ const userSchema = new mongoose.Schema({
         trim: true,
         match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
     },
+    phone: {
+        type: String,
+        required: [true, 'Phone number is required'],
+        trim: true
+    },
     password: {
         type: String,
         required: [true, 'Password is required'],
-        minlength: [6, 'Password must be at least 6 characters long'],
+        minlength: [8, 'Password must be at least 8 characters long'],
         select: false
     },
     profilePicture: {
@@ -38,6 +53,39 @@ const userSchema = new mongoose.Schema({
     successfulTrades: {
         type: Number,
         default: 0
+    },
+    socialProfiles: {
+        google: {
+            id: String,
+            email: String,
+            name: String
+        },
+        facebook: {
+            id: String,
+            email: String,
+            name: String
+        },
+        twitter: {
+            id: String,
+            username: String,
+            name: String
+        }
+    },
+    isEmailVerified: {
+        type: Boolean,
+        default: false
+    },
+    isPhoneVerified: {
+        type: Boolean,
+        default: false
+    },
+    lastLogin: {
+        type: Date
+    },
+    status: {
+        type: String,
+        enum: ['active', 'inactive', 'suspended'],
+        default: 'active'
     },
     createdAt: {
         type: Date,
@@ -58,5 +106,16 @@ userSchema.pre('save', async function(next) {
 userSchema.methods.matchPassword = async function(enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
+
+// Update last login
+userSchema.methods.updateLastLogin = async function() {
+    this.lastLogin = new Date();
+    await this.save();
+};
+
+// Get full name
+userSchema.virtual('fullName').get(function() {
+    return `${this.firstName} ${this.lastName}`;
+});
 
 module.exports = mongoose.model('User', userSchema);
