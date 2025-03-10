@@ -1,7 +1,6 @@
 <template>
   <div class="hero-slider-container">
     <div class="hero-slider">
-      <div class="side-panel left"></div>
       <div class="slides" :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
         <div class="slide" v-for="(slide, index) in slides" :key="index">
           <div class="slide-content">
@@ -10,15 +9,14 @@
                 <img :src="slide.image" :alt="slide.alt">
                 <div class="overlay"></div>
               </div>
-            </div>
-            <div class="text-content">
-              <h2>{{ slide.title }}</h2>
-              <p>{{ slide.description }}</p>
+              <div class="text-content">
+                <h2>{{ slide.title }}</h2>
+                <p>{{ slide.description }}</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="side-panel right"></div>
       
       <div class="slider-nav">
         <button 
@@ -41,22 +39,22 @@ export default {
       currentSlide: 0,
       slides: [
         {
-          image: '/images/slide1.jpg',
-          alt: 'Digital Barter Initiative',
-          title: 'Welcome to Digital Barter',
-          description: 'Exchange items easily and securely with our community'
+          image: '/images/digital-barter-1.jpg',
+          alt: 'Traditional Digital Barter',
+          title: 'Embrace Traditional Values',
+          description: 'Experience the fusion of tradition and technology in modern bartering'
         },
         {
-          image: '/images/slide2.jpg',
-          alt: 'Digital Exchange Process',
-          title: 'Simple Exchange Process',
-          description: 'Trade items seamlessly using our digital platform'
+          image: '/images/digital-barter-2.jpg',
+          alt: 'Mobile Market Exchange',
+          title: 'Trade Anywhere, Anytime',
+          description: 'Connect with local traders using our digital platform'
         },
         {
-          image: '/images/slide3.jpg',
-          alt: 'Community Trading',
-          title: 'Community-Driven Trading',
-          description: 'Connect with local traders and exchange items safely'
+          image: '/images/digital-barter-3.jpg',
+          alt: 'Modern Exchange',
+          title: 'Modern Trading Solutions',
+          description: 'Exchange items seamlessly in our digital marketplace'
         }
       ],
       autoSlideInterval: null
@@ -74,7 +72,7 @@ export default {
   methods: {
     updateHeight() {
       const vh = window.innerHeight
-      const headerHeight = 80 // Adjust this value based on your header height
+      const headerHeight = 80
       const container = document.querySelector('.hero-slider-container')
       if (container) {
         container.style.height = `${vh - headerHeight}px`
@@ -104,10 +102,8 @@ export default {
 .hero-slider-container {
   width: 100%;
   position: relative;
-  background: linear-gradient(135deg, 
-    rgba(255, 215, 0, 0.1),
-    rgba(255, 107, 107, 0.1)
-  );
+  background: #1a1a1a;
+  overflow: hidden;
 }
 
 .hero-slider {
@@ -120,75 +116,55 @@ export default {
   overflow: hidden;
 }
 
-.side-panel {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 15%;
-  z-index: 1;
-
-  &.left {
-    left: 0;
-    background: linear-gradient(
-      to right,
-      rgba(255, 215, 0, 0.2),
-      rgba(255, 215, 0, 0.05)
-    );
-  }
-
-  &.right {
-    right: 0;
-    background: linear-gradient(
-      to left,
-      rgba(255, 107, 107, 0.2),
-      rgba(255, 107, 107, 0.05)
-    );
-  }
-}
-
 .slides {
   display: flex;
   transition: transform 0.5s ease-in-out;
   height: 100%;
-  width: 70%; // Center portion for slides
-  margin: 0 auto;
+  width: 100%;
+  position: relative;
 }
 
 .slide {
   min-width: 100%;
   height: 100%;
+  flex: 0 0 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1a1a;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .slide-content {
-  position: relative;
+  width: 100%;
   height: 100%;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  transform: translateZ(0);
 }
 
 .image-container {
-  position: relative;
   width: 100%;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: relative;
 }
 
 .image-wrapper {
   position: relative;
   width: 100%;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  overflow: hidden;
   
   img {
-    max-width: 100%;
+    width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
     object-position: center;
+    transition: transform 0.3s ease;
   }
 
   .overlay {
@@ -198,41 +174,38 @@ export default {
     right: 0;
     bottom: 0;
     background: linear-gradient(
-      45deg,
-      rgba(255, 215, 0, 0.1),
-      rgba(255, 107, 107, 0.1)
+      to bottom,
+      rgba(0, 0, 0, 0.2),
+      rgba(0, 0, 0, 0.5)
     );
-    mix-blend-mode: multiply;
   }
 }
 
 .text-content {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 2rem;
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.7),
-    rgba(0, 0, 0, 0)
-  );
-  color: white;
+  left: 50%;
+  bottom: 15%;
+  transform: translateX(-50%);
   text-align: center;
+  color: white;
+  z-index: 2;
+  width: 80%;
+  max-width: 800px;
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
 
   h2 {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
+    font-size: 3rem;
     font-weight: 700;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
   }
 
   p {
-    font-size: 1.2rem;
-    line-height: 1.6;
-    max-width: 600px;
-    margin: 0 auto;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    font-size: 1.5rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
   }
 }
 
@@ -243,10 +216,7 @@ export default {
   transform: translateX(-50%);
   display: flex;
   gap: 1rem;
-  z-index: 10;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 0.5rem 1rem;
-  border-radius: 2rem;
+  z-index: 2;
 
   button {
     width: 12px;
@@ -262,31 +232,74 @@ export default {
       background: white;
       transform: scale(1.2);
     }
+  }
+}
 
-    &:hover {
-      background: rgba(255, 255, 255, 0.5);
+// Media Queries
+@media (max-width: 1024px) {
+  .text-content {
+    width: 90%;
+    padding: 1.5rem;
+
+    h2 {
+      font-size: 2.5rem;
+    }
+
+    p {
+      font-size: 1.25rem;
     }
   }
 }
 
 @media (max-width: 768px) {
-  .side-panel {
-    width: 10%;
-  }
-
-  .slides {
-    width: 80%;
-  }
-
   .text-content {
-    padding: 1.5rem;
+    bottom: 20%;
+    padding: 1.25rem;
 
     h2 {
-      font-size: 1.8rem;
+      font-size: 2rem;
+    }
+
+    p {
+      font-size: 1.1rem;
+    }
+  }
+
+  .image-wrapper {
+    img {
+      object-position: center 20%;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .text-content {
+    width: 95%;
+    padding: 1rem;
+    bottom: 25%;
+
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
     }
 
     p {
       font-size: 1rem;
+    }
+  }
+
+  .slider-nav {
+    bottom: 1rem;
+    
+    button {
+      width: 8px;
+      height: 8px;
+    }
+  }
+
+  .image-wrapper {
+    img {
+      object-position: center 25%;
     }
   }
 }

@@ -37,17 +37,30 @@
               </button>
             </li>
             <li class="nav-item ms-2">
-              <div class="account-dropdown">
-                <button class="icon-button" @click="toggleAccountMenu">
+              <div class="account-section">
+                <button v-if="!isAuthenticated" class="icon-button" @click="openLoginModal">
                   <i class="fas fa-user"></i>
                 </button>
-                <!-- Account Dropdown Menu -->
-                <div class="dropdown-menu" v-if="showAccountMenu && isAuthenticated">
-                  <div class="dropdown-header">
-                    Welcome {{ username }}
+                <div v-else class="user-profile" @click="toggleAccountMenu">
+                  <div class="user-avatar">{{ userInitials }}</div>
+                  <div class="account-dropdown" v-if="showAccountMenu">
+                    <div class="dropdown-header">
+                      Welcome, {{ userName }}!
+                    </div>
+                    <router-link to="/profile" class="dropdown-item">
+                      <i class="fas fa-user-circle"></i> My Profile
+                    </router-link>
+                    <router-link to="/my-items" class="dropdown-item">
+                      <i class="fas fa-box"></i> My Items
+                    </router-link>
+                    <router-link to="/trades" class="dropdown-item">
+                      <i class="fas fa-exchange-alt"></i> My Trades
+                    </router-link>
+                    <div class="dropdown-divider"></div>
+                    <button @click="logout" class="dropdown-item text-danger">
+                      <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
                   </div>
-                  <router-link to="/profile" class="dropdown-item">My Account</router-link>
-                  <button @click="logout" class="dropdown-item">Logout</button>
                 </div>
               </div>
             </li>
@@ -254,23 +267,24 @@ export default {
   name: 'TheHeader',
   data() {
     return {
+      isAuthenticated: false,
+      userData: null,
       showAccountMenu: false,
       showLoginModal: false,
       showRegisterModal: false,
+      isLoading: false,
       showPassword: false,
       showRegPassword: false,
       showConfirmPassword: false,
-      isLoading: false,
       errors: {},
-      isAuthenticated: false,
       loginForm: {
         username: '',
-        password: '',
-        remember: false
+        password: ''
       },
       registerForm: {
         firstName: '',
         lastName: '',
+        username: '',
         email: '',
         phone: '',
         password: '',
@@ -278,12 +292,30 @@ export default {
       }
     }
   },
+  computed: {
+    userInitials() {
+      if (!this.userData) return '';
+      return `${this.userData.firstName.charAt(0)}${this.userData.lastName.charAt(0)}`.toUpperCase();
+    },
+    userName() {
+      return this.userData ? `${this.userData.firstName} ${this.userData.lastName}` : '';
+    }
+  },
+  created() {
+    // Check authentication status when component is created
+    this.checkAuthStatus();
+  },
   methods: {
-    toggleAccountMenu() {
-      if (!this.isAuthenticated) {
-        this.openLoginModal();
+    checkAuthStatus() {
+      const token = localStorage.getItem('token');
+      const user = localStorage.getItem('user');
+      
+      if (token && user) {
+        this.isAuthenticated = true;
+        this.userData = JSON.parse(user);
       } else {
-        this.showAccountMenu = !this.showAccountMenu;
+        this.isAuthenticated = false;
+        this.userData = null;
       }
     },
     validateLoginForm() {
@@ -397,7 +429,6 @@ export default {
         });
 
         const data = await response.json();
-        console.log('Login response:', data); // For debugging
 
         if (!response.ok) {
           throw new Error(data.message || 'Login failed');
@@ -412,6 +443,12 @@ export default {
           email: data.email,
           username: data.username
         }));
+
+        // Update authentication status
+        this.checkAuthStatus();
+
+        // Show success message
+        alert('Login successful! Welcome back ' + data.firstName);
 
         // Close modal and reset form
         this.showLoginModal = false;
@@ -498,12 +535,12 @@ export default {
     resetForms() {
       this.loginForm = {
         username: '',
-        password: '',
-        remember: false
+        password: ''
       };
       this.registerForm = {
         firstName: '',
         lastName: '',
+        username: '',
         email: '',
         phone: '',
         password: '',
@@ -518,6 +555,27 @@ export default {
     forgotPassword() {
       // TODO: Implement forgot password functionality
       console.log('Forgot password clicked');
+    },
+    logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      this.checkAuthStatus();
+      window.location.reload();
+    },
+    toggleAccountMenu() {
+      this.showAccountMenu = !this.showAccountMenu;
+      // Close menu when clicking outside
+      if (this.showAccountMenu) {
+        document.addEventListener('click', this.closeAccountMenu);
+      }
+    },
+    closeAccountMenu(event) {
+      // Check if click is outside the account section
+      const accountSection = document.querySelector('.account-section');
+      if (accountSection && !accountSection.contains(event.target)) {
+        this.showAccountMenu = false;
+        document.removeEventListener('click', this.closeAccountMenu);
+      }
     }
   }
 }
@@ -574,34 +632,95 @@ export default {
     }
   }
 
-  .account-dropdown {
+  .account-section {
     position: relative;
+    display: inline-block;
 
-    .dropdown-menu {
+    .user-profile {
+      position: relative;
+      cursor: pointer;
+      padding: 5px;
+      border-radius: 50%;
+      transition: background-color 0.3s;
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+      }
+
+      .user-avatar {
+        width: 35px;
+        height: 35px;
+        background: linear-gradient(45deg, #ff6b6b, #feca57);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 14px;
+      }
+    }
+
+    .account-dropdown {
       position: absolute;
-      top: 100%;
+      top: calc(100% + 5px);
       right: 0;
       background: white;
       border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       min-width: 200px;
       z-index: 1000;
+      overflow: hidden;
+      border: 1px solid #eee;
 
       .dropdown-header {
-        padding: 1rem;
-        border-bottom: 1px solid #eee;
+        padding: 12px 16px;
+        background: linear-gradient(45deg, #ff6b6b, #feca57);
+        color: white;
         font-weight: 500;
+        font-size: 0.9rem;
       }
 
       .dropdown-item {
-        display: block;
-        padding: 0.75rem 1rem;
-        color: var(--text-color);
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #333;
         text-decoration: none;
+        transition: background-color 0.2s;
+        font-size: 0.9rem;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
+
+        &:hover {
+          background-color: #f8f9fa;
+        }
+
+        i {
+          width: 16px;
+          color: #666;
+        }
+      }
+
+      .dropdown-divider {
+        height: 1px;
+        background-color: #e9ecef;
+        margin: 8px 0;
+      }
+
+      .text-danger {
+        color: #dc3545;
         
         &:hover {
-          background: #f8f9fa;
-          color: var(--primary-color);
+          background-color: #fff5f5;
+        }
+        
+        i {
+          color: #dc3545;
         }
       }
     }
