@@ -294,36 +294,73 @@ export default {
     }
   },
   methods: {
-    toggleTransaction(id) {
-      this.selectedTransaction = this.selectedTransaction === id ? null : id
-    },
-    formatDate(date) {
-      return new Date(date).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      })
-    },
-    resetFilters() {
-      this.filters = {
-        search: '',
-        status: '',
-        timeframe: 'all'
+  toggleTransaction(id) {
+    this.selectedTransaction = this.selectedTransaction === id ? null : id;
+  },
+  formatDate(date) {
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  },
+  resetFilters() {
+    this.filters = {
+      search: '',
+      status: '',
+      timeframe: 'all'
+    };
+  },
+  viewDetails(id) {
+    // Navigate to detailed view
+    console.log('Viewing transaction details:', id);
+    this.$router.push(`/dashboard/transactions/${id}`);
+  },
+  openChat(id) {
+    // Navigate to chat with trade partner
+    console.log('Opening chat for transaction:', id);
+    this.$router.push(`/dashboard/messages?trade=${id}`);
+  },
+  async cancelTrade(id) {
+    if (confirm('Are you sure you want to cancel this trade?')) {
+      try {
+        console.log('Cancelling trade:', id);
+        // Here you would make an API call to cancel the trade
+        // await api.cancelTrade(id);
+        
+        // Update local state
+        this.transactions = this.transactions.map(t => 
+          t.id === id ? { ...t, status: 'Cancelled' } : t
+        );
+      } catch (error) {
+        console.error('Failed to cancel trade:', error);
       }
-    },
-    viewDetails(id) {
-      // Implement view details logic
-    },
-    openChat(id) {
-      // Implement chat opening logic
-    },
-    cancelTrade(id) {
-      // Implement trade cancellation logic
-    },
-    leaveFeedback(id) {
-      // Implement feedback submission logic
+    }
+  },
+  async leaveFeedback(id) {
+    const rating = prompt('Rate this trade (1-5):');
+    if (!rating || isNaN(rating) || rating < 1 || rating > 5) {
+      alert('Please enter a valid rating between 1 and 5');
+      return;
+    }
+
+    const feedback = prompt('Leave your feedback:');
+    if (feedback) {
+      try {
+        console.log('Submitting feedback for trade:', id);
+        // Here you would make an API call to save the feedback
+        // await api.submitFeedback(id, { rating: Number(rating), feedback });
+        
+        // Update local state
+        this.transactions = this.transactions.map(t => 
+          t.id === id ? { ...t, rating: Number(rating), feedback } : t
+        );
+      } catch (error) {
+        console.error('Failed to submit feedback:', error);
+      }
     }
   }
+}
 }
 </script>
 

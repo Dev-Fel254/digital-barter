@@ -2,12 +2,12 @@
   <div class="dashboard-container">
     <!-- Sidebar Navigation -->
     <aside class="sidebar" :class="{ 'sidebar-mobile-open': isMobileMenuOpen }">
-      <div class="branding">
-        <img src="@/assets/logo.svg" alt="Digital Barter" class="logo">
-        <button class="mobile-close" @click="toggleMobileMenu" aria-label="Close Menu">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
+    <div class="branding">
+      <h1 class="logo-text">Digital Barter</h1>
+      <button class="mobile-close" @click="toggleMobileMenu" aria-label="Close Menu">
+     <i class="fas fa-times"></i>
+  </button>
+</div>
       
       <nav class="menu">
         <router-link 
@@ -89,6 +89,19 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.branding {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  
+  .logo-text {
+    color: #FFD700;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+  }
+}
 .dashboard-container {
   display: grid;
   grid-template-columns: 240px 1fr;

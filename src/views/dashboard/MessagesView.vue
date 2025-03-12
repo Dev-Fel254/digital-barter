@@ -128,7 +128,7 @@
 
         <!-- No Chat Selected State -->
         <div v-else class="no-chat-selected">
-          <img src="@/assets/chat-illustration.svg" alt="Select a chat">
+          <i class="fas fa-comments no-chat-icon"></i>
           <h2>Select a Conversation</h2>
           <p>Choose a chat from the list to start messaging</p>
         </div>
@@ -641,10 +641,10 @@ export default {
   color: #666;
   padding: 2rem;
 
-  img {
-    width: 200px;
+  .no-chat-icon {
+    font-size: 5rem;
+    color: #ddd;
     margin-bottom: 2rem;
-    opacity: 0.5;
   }
 
   h2 {
