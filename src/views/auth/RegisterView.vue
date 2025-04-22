@@ -1,45 +1,46 @@
 <template>
   <div class="register-container">
-    <h1 class="title gradient-text">Create Account</h1>
-    <p class="subtitle">Join our community and start bartering today!</p>
+    <h1 class="title gradient-text">Registration Form</h1>
+    <p class="subtitle"><span class="required-indicator">*</span>Indicates mandatory fields</p>
     
     <form @submit.prevent="register" class="register-form">
-      <div class="form-row">
-        <div class="form-group">
-          <label for="firstName">First Name</label>
-          <input 
-            type="text" 
-            id="firstName" 
-            v-model="form.firstName" 
-            class="form-control" 
-            required
-          />
-        </div>
-        <div class="form-group">
-          <label for="lastName">Last Name</label>
-          <input 
-            type="text" 
-            id="lastName" 
-            v-model="form.lastName" 
-            class="form-control" 
-            required
-          />
-        </div>
-      </div>
-      
       <div class="form-group">
-        <label for="username">Username</label>
+        <label for="username">Username <span class="required-indicator">*</span></label>
         <input 
           type="text" 
           id="username" 
           v-model="form.username" 
           class="form-control" 
           required
+          @input="validateUsername"
+        />
+        <small v-if="errors.username" class="error-text">{{ errors.username }}</small>
+      </div>
+      
+      <div class="form-group">
+        <label for="password">Password <span class="required-indicator">*</span></label>
+        <input 
+          type="password" 
+          id="password" 
+          v-model="form.password" 
+          class="form-control" 
+          required
         />
       </div>
       
       <div class="form-group">
-        <label for="email">Email</label>
+        <label for="confirmPassword">Confirm Password <span class="required-indicator">*</span></label>
+        <input 
+          type="password" 
+          id="confirmPassword" 
+          v-model="form.confirmPassword" 
+          class="form-control" 
+          required
+        />
+      </div>
+      
+      <div class="form-group">
+        <label for="email">Email <span class="required-indicator">*</span></label>
         <input 
           type="email" 
           id="email" 
@@ -50,50 +51,31 @@
       </div>
       
       <div class="form-group">
-        <label for="phone">Phone</label>
-        <input 
-          type="tel" 
-          id="phone" 
-          v-model="form.phone" 
-          class="form-control" 
-          required
-        />
+        <div class="checkbox-container">
+          <input 
+            type="checkbox" 
+            id="newsletter" 
+            v-model="form.newsletter"
+          />
+          <label for="newsletter">Subscribe to Newsletters</label>
+        </div>
       </div>
       
       <div class="form-group">
-        <label for="location">Location</label>
-        <input 
-          type="text" 
-          id="location" 
-          v-model="form.location" 
-          class="form-control" 
-          required
-        />
-      </div>
-      
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input 
-          type="password" 
-          id="password" 
-          v-model="form.password" 
-          class="form-control" 
-          required
-        />
-        <small class="password-hint">
-          Password must be at least 8 characters and include uppercase, lowercase, number and special character
-        </small>
-      </div>
-      
-      <div class="form-group">
-        <label for="confirmPassword">Confirm Password</label>
-        <input 
-          type="password" 
-          id="confirmPassword" 
-          v-model="form.confirmPassword" 
-          class="form-control" 
-          required
-        />
+        <label for="securityCode">Security Code <span class="required-indicator">*</span></label>
+        <div class="security-code-container">
+          <div class="security-code-display">
+            {{ securityCode }}
+          </div>
+          <input 
+            type="text" 
+            id="securityCode" 
+            v-model="form.enteredCode" 
+            class="form-control" 
+            required
+          />
+        </div>
+        <small v-if="errors.securityCode" class="error-text">{{ errors.securityCode }}</small>
       </div>
       
       <div v-if="error" class="error-message">
@@ -102,11 +84,11 @@
       
       <button type="submit" class="btn btn-primary" :disabled="loading">
         <span v-if="loading">Creating Account...</span>
-        <span v-else>Create Account</span>
+        <span v-else>REGISTER</span>
       </button>
       
       <p class="login-link">
-        Already have an account? <router-link to="/auth/login">Login</router-link>
+        Already have an account? <router-link to="/auth/login">Sign in</router-link>
       </p>
     </form>
   </div>
@@ -118,43 +100,80 @@ export default {
   data() {
     return {
       form: {
-        firstName: '',
-        lastName: '',
         username: '',
         email: '',
-        phone: '',
-        location: '',
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        newsletter: false,
+        enteredCode: ''
       },
+      securityCode: this.generateSecurityCode(),
       loading: false,
-      error: null
+      error: null,
+      errors: {
+        username: null,
+        securityCode: null
+      }
     }
   },
   methods: {
+    generateSecurityCode() {
+      // Generate a random 4-digit code
+      return Math.floor(1000 + Math.random() * 9000).toString();
+    },
+    validateUsername() {
+      const specialCharsRegex = /[!@#$%^&*(),.?":{}|<>]/;
+      if (specialCharsRegex.test(this.form.username)) {
+        this.errors.username = 'Username should not contain special characters';
+      } else {
+        this.errors.username = null;
+      }
+    },
     async register() {
-      if (this.form.password !== this.form.confirmPassword) {
-        this.error = 'Passwords do not match'
-        return
+      // Reset errors
+      this.error = null;
+      this.errors.securityCode = null;
+      
+      // Validate username
+      this.validateUsername();
+      
+      // Validate security code
+      if (this.form.enteredCode !== this.securityCode) {
+        this.errors.securityCode = 'Invalid security code';
+        return;
       }
       
-      this.loading = true
-      this.error = null
+      // Validate password match
+      if (this.form.password !== this.form.confirmPassword) {
+        this.error = 'Passwords do not match';
+        return;
+      }
+      
+      // Check if there are any validation errors
+      if (this.errors.username) {
+        return;
+      }
+      
+      this.loading = true;
       
       try {
-        // Remove confirmPassword as it's not needed in the API call
-        const userData = { ...this.form }
-        delete userData.confirmPassword
+        // Remove confirmPassword and enteredCode as they're not needed in the API call
+        const userData = { 
+          username: this.form.username,
+          email: this.form.email,
+          password: this.form.password,
+          newsletter: this.form.newsletter
+        };
         
         // Use our temporary store implementation
-        console.log('Registration attempted with:', userData)
+        console.log('Registration attempted with:', userData);
         
         // Simulate successful registration
-        this.$router.push('/auth/login')
+        this.$router.push('/auth/login');
       } catch (error) {
-        this.error = error.message || 'Registration failed. Please try again.'
+        this.error = error.message || 'Registration failed. Please try again.';
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     }
   }
@@ -183,20 +202,15 @@ export default {
   margin-bottom: 2rem;
 }
 
+.required-indicator {
+  color: #FF6B6B;
+  font-weight: bold;
+}
+
 .register-form {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  
-  @media (max-width: 576px) {
-    grid-template-columns: 1fr;
-  }
 }
 
 .form-group {
@@ -209,9 +223,38 @@ export default {
   }
 }
 
-.password-hint {
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  
+  input[type="checkbox"] {
+    width: auto;
+  }
+}
+
+.security-code-container {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.security-code-display {
+  background-color: #f8f8f8;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 1.2rem;
+  letter-spacing: 3px;
+  color: #333;
+  border: 1px solid #ddd;
+  min-width: 100px;
+  text-align: center;
+}
+
+.error-text {
+  color: #FF6B6B;
   font-size: 0.8rem;
-  color: var(--text-light);
 }
 
 .error-message {
@@ -220,6 +263,26 @@ export default {
   padding: 0.75rem;
   border-radius: 4px;
   font-size: 0.9rem;
+}
+
+.btn-primary {
+  background-color: #FFD700;
+  color: #333;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  
+  &:hover {
+    background-color: darken(#FFD700, 10%);
+  }
+  
+  &:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
 }
 
 .login-link {
