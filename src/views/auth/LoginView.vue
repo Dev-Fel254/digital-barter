@@ -5,24 +5,6 @@
       <p class="subtitle">Login to access your Digital Barter account</p>
 
       <form @submit.prevent="handleLogin" class="login-form">
-        <div class="social-login">
-          <p class="social-login-text">Login with</p>
-          <div class="social-buttons">
-            <button type="button" class="social-btn facebook" @click="socialLogin('facebook')">
-              <i class="fab fa-facebook-f"></i>
-            </button>
-            <button type="button" class="social-btn google" @click="socialLogin('google')">
-              <i class="fab fa-google"></i>
-            </button>
-            <button type="button" class="social-btn twitter" @click="socialLogin('twitter')">
-              <i class="fab fa-x-twitter"></i>
-            </button>
-          </div>
-          <div class="divider">
-            <span>OR</span>
-          </div>
-        </div>
-
         <div class="form-group">
           <label for="email">Email</label>
           <input 
@@ -70,7 +52,24 @@
           </span>
           <span v-else>Login</span>
         </button>
-
+        
+        <div class="social-login">
+          <div class="divider">
+            <span>OR CONTINUE WITH</span>
+          </div>
+          <div class="social-buttons">
+            <button type="button" class="social-btn facebook disabled" title="Coming soon">
+              <i class="fab fa-facebook-f"></i>
+            </button>
+            <button type="button" class="social-btn google disabled" title="Coming soon">
+              <i class="fab fa-google"></i>
+            </button>
+            <button type="button" class="social-btn twitter disabled" title="Coming soon">
+              <i class="fab fa-x-twitter"></i>
+            </button>
+          </div>
+        </div>
+        
         <div class="form-footer">
           <router-link to="/auth/forgot-password">Forgot Password?</router-link>
           <p>
@@ -84,6 +83,9 @@
 </template>
 
 <script>
+import authService from '@/services/auth'
+import { signInWithGoogle } from '@/services/googleAuth'
+
 export default {
   name: 'LoginView',
   data() {
@@ -102,36 +104,25 @@ export default {
       this.error = null
 
       try {
-        // Simulate successful login for now
-        // This will be replaced with actual Vuex store dispatch when dependencies are installed
-        console.log('Login attempted with:', this.email, this.password)
+        // Sign in with email and password using Supabase
+        const data = await authService.signIn(this.email, this.password)
         
-        // Get the last registered user if it exists
-        const lastRegisteredUser = JSON.parse(localStorage.getItem('lastRegisteredUser') || '{}')
+        // Get user data from Supabase response
+        const user = data.user
         
-        // Use the username from the last registered user if available
-        // or use the email username part as a fallback
-        let userName = lastRegisteredUser.username || this.email.split('@')[0]
-        
-        // Capitalize the first letter of the username
-        userName = userName.charAt(0).toUpperCase() + userName.slice(1)
-        
-        // Simulate a successful login
-        const userData = {
-          name: userName,
-          email: this.email,
+        // Store user data in localStorage for the app to use
+        localStorage.setItem('token', data.session.access_token)
+        localStorage.setItem('user', JSON.stringify({
+          name: user.user_metadata.full_name || user.email.split('@')[0],
+          email: user.email,
+          avatar: user.user_metadata.avatar_url,
           registrationDate: new Date().toLocaleDateString()
-        }
-        
-        // Store user data in localStorage
-        localStorage.setItem('token', 'dummy-token')
-        localStorage.setItem('user', JSON.stringify(userData))
+        }))
         
         // Create a success message
         this.success = 'Login successful! Redirecting...'
         
         // Trigger an event to notify components that user auth has changed
-        // This must happen AFTER localStorage is updated
         window.dispatchEvent(new Event('user-auth-change'))
         
         // Redirect to categories page after a short delay
@@ -145,52 +136,32 @@ export default {
       }
     },
     
-    socialLogin(provider) {
+    async socialLogin(provider) {
       this.loading = true
       this.error = null
       
-      // Simulate social login process
-      console.log(`Social login attempted with ${provider}`)
-      
-      setTimeout(() => {
-        // Create mock user data based on the provider
-        let userData = {
-          name: '',
-          email: '',
-          registrationDate: new Date().toLocaleDateString(),
-          provider: provider
-        }
-        
+      try {
         switch(provider) {
-          case 'facebook':
-            userData.name = 'Facebook User'
-            userData.email = 'facebook.user@example.com'
-            break
           case 'google':
-            userData.name = 'Google User'
-            userData.email = 'google.user@example.com'
+            // Use our custom Google authentication implementation
+            signInWithGoogle();
+            break;
+          case 'facebook':
+            await authService.signInWithFacebook()
             break
           case 'twitter':
-            userData.name = 'Twitter User'
-            userData.email = 'twitter.user@example.com'
+            await authService.signInWithTwitter()
             break
+          default:
+            throw new Error('Unsupported provider')
         }
         
-        // Store user data in localStorage
-        localStorage.setItem('token', 'dummy-token')
-        localStorage.setItem('user', JSON.stringify(userData))
-        
-        // Create a success message
-        this.success = `Login with ${provider} successful! Redirecting...`
-        
-        // Trigger an event to notify components that user auth has changed
-        window.dispatchEvent(new Event('user-auth-change'))
-        
-        // Redirect to categories page
-        this.$router.push('/categories')
-        
+        // Note: The redirect and session handling will be managed by the AuthCallback component
+        // after the OAuth flow completes
+      } catch (err) {
+        this.error = err.message || `Failed to login with ${provider}`
         this.loading = false
-      }, 1500) // Simulate network delay
+      }
     }
   }
 }
@@ -235,87 +206,6 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  
-  .social-login {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 1rem;
-    
-    .social-login-text {
-      font-size: 0.9rem;
-      color: var(--text-light);
-      margin-bottom: 1rem;
-    }
-    
-    .social-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-      
-      .social-btn {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: none;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        color: white;
-        font-size: 1.2rem;
-        
-        &:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        &.facebook {
-          background: linear-gradient(45deg, #3b5998, #8b9dc3);
-          border: 2px solid rgba(255, 215, 0, 0.3);
-          
-          &:hover {
-            background: linear-gradient(45deg, #4c70ba, #9eafd3);
-          }
-        }
-        
-        &.google {
-          background: linear-gradient(45deg, #db4437, #f4b400);
-          border: 2px solid rgba(255, 215, 0, 0.3);
-          
-          &:hover {
-            background: linear-gradient(45deg, #e74c3c, #f5c542);
-          }
-        }
-        
-        &.twitter {
-          background: linear-gradient(45deg, #1da1f2, #14171A);
-          border: 2px solid rgba(255, 215, 0, 0.3);
-          
-          &:hover {
-            background: linear-gradient(45deg, #1a91da, #2c3e50);
-          }
-        }
-      }
-    }
-    
-    .divider {
-      width: 100%;
-      text-align: center;
-      border-bottom: 1px solid var(--border-color);
-      line-height: 0.1em;
-      margin: 1rem 0;
-      
-      span {
-        background: white;
-        padding: 0 10px;
-        color: var(--text-light);
-        font-size: 0.9rem;
-      }
-    }
-  }
   
   .form-group {
     display: flex;
@@ -367,6 +257,92 @@ export default {
       opacity: 0.7;
       cursor: not-allowed;
       transform: none;
+    }
+  }
+  
+  .social-login {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 1rem 0;
+    
+    .divider {
+      width: 100%;
+      text-align: center;
+      border-bottom: 1px solid var(--border-color);
+      line-height: 0.1em;
+      margin-bottom: 1.5rem;
+      
+      span {
+        background: white;
+        padding: 0 10px;
+        color: var(--text-light);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+    }
+    
+    .social-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      
+      .social-btn {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        color: white;
+        font-size: 1.2rem;
+        
+        &.disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          
+          &:hover {
+            transform: none;
+            box-shadow: none;
+          }
+        }
+        
+        &:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        &.facebook {
+          background: linear-gradient(45deg, #3b5998, #8b9dc3);
+          border: 2px solid rgba(255, 215, 0, 0.3);
+          
+          &:hover {
+            background: linear-gradient(45deg, #4c70ba, #9eafd3);
+          }
+        }
+        
+        &.google {
+          background: linear-gradient(45deg, #db4437, #f4b400);
+          border: 2px solid rgba(255, 215, 0, 0.3);
+          
+          &:hover {
+            background: linear-gradient(45deg, #e74c3c, #f5c542);
+          }
+        }
+        
+        &.twitter {
+          background: linear-gradient(45deg, #1da1f2, #14171A);
+          border: 2px solid rgba(255, 215, 0, 0.3);
+          
+          &:hover {
+            background: linear-gradient(45deg, #1a91da, #2c3e50);
+          }
+        }
+      }
     }
   }
   

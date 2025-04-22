@@ -99,6 +99,8 @@
 </template>
 
 <script>
+import authService from '@/services/auth'
+
 export default {
   name: 'RegisterView',
   data() {
@@ -163,31 +165,29 @@ export default {
       this.loading = true;
       
       try {
-        // Prepare user data for API call
-        const userData = { 
+        // Prepare user data for Supabase
+        const userData = {
+          full_name: this.form.username,
           username: this.form.username,
-          email: this.form.email,
-          password: this.form.password,
-          newsletter: this.form.newsletter
+          newsletter_subscription: this.form.newsletter
         };
         
-        // Store user data in localStorage for demonstration
-        // In a real app, this would be stored in a database
+        // Register user with Supabase
+        await authService.signUp(this.form.email, this.form.password, userData);
+        
+        // Store user data in localStorage for later use in login
         localStorage.setItem('lastRegisteredUser', JSON.stringify({
           username: this.form.username,
           email: this.form.email
         }));
         
-        // Log registration attempt
-        console.log('Registration attempted with:', userData);
-        
         // Show success message
-        this.success = 'Account created successfully! Redirecting to login...';
+        this.success = 'Account created successfully! Please check your email to confirm your account. Redirecting to login...';
         
-        // Simulate successful registration with delay for showing the success message
+        // Redirect to login page after a delay
         setTimeout(() => {
           this.$router.push('/auth/login');
-        }, 2000);
+        }, 3000);
       } catch (error) {
         this.error = error.message || 'Registration failed. Please try again.';
       } finally {
