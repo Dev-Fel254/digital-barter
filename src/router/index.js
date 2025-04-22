@@ -7,7 +7,7 @@ const requireAuth = (to, from, next) => {
   if (token) {
     next()
   } else {
-    next('/')
+    next('/auth/login')
   }
 }
 
@@ -65,22 +65,26 @@ const routes = [
   {
     path: '/wish',
     name: 'wish',
-    component: () => import('../views/WishView.vue')
+    component: () => import('../views/WishView.vue'),
+    beforeEnter: requireAuth
   },
   {
     path: '/swap',
     name: 'swap',
-    component: () => import('../views/SwapView.vue')
+    component: () => import('../views/SwapView.vue'),
+    beforeEnter: requireAuth
   },
   {
     path: '/members',
     name: 'members',
-    component: () => import('../views/MembersView.vue')
+    component: () => import('../views/MembersView.vue'),
+    beforeEnter: requireAuth
   },
   {
     path: '/categories',
     name: 'categories',
-    component: () => import('../views/CategoriesView.vue')
+    component: () => import('../views/CategoriesView.vue'),
+    beforeEnter: requireAuth
   },
   // Footer routes
   {

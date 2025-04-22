@@ -1,30 +1,66 @@
-import { createStore } from 'vuex'
-import auth from './modules/auth'
-import user from './modules/user'
+// Temporary store implementation until Vuex can be installed
+// This creates a simple reactive store that mimics basic Vuex functionality
 
-export default createStore({
+const store = {
   state: {
     loading: false,
-    error: null
-  },
-  mutations: {
-    SET_LOADING(state, loading) {
-      state.loading = loading
+    error: null,
+    auth: {
+      token: localStorage.getItem('token') || null,
+      isAuthenticated: !!localStorage.getItem('token'),
+      authError: null
     },
-    SET_ERROR(state, error) {
-      state.error = error
+    user: {
+      profile: null,
+      loading: false,
+      error: null
     }
   },
-  actions: {
-    setLoading({ commit }, loading) {
-      commit('SET_LOADING', loading)
-    },
-    setError({ commit }, error) {
-      commit('SET_ERROR', error)
+  
+  // Simple implementation to replace Vuex functionality temporarily
+  commit(mutation, payload) {
+    console.log(`Mutation: ${mutation}`, payload);
+    
+    // Handle auth mutations
+    if (mutation === 'auth/SET_TOKEN') {
+      this.state.auth.token = payload;
+      this.state.auth.isAuthenticated = !!payload;
+      
+      if (payload) {
+        localStorage.setItem('token', payload);
+      } else {
+        localStorage.removeItem('token');
+      }
+    }
+    
+    // Handle global mutations
+    if (mutation === 'SET_LOADING') {
+      this.state.loading = payload;
+    }
+    if (mutation === 'SET_ERROR') {
+      this.state.error = payload;
     }
   },
-  modules: {
-    auth,
-    user
+  
+  async dispatch(action, payload) {
+    console.log(`Action: ${action}`, payload);
+    
+    // Simulate successful auth actions
+    if (action === 'auth/login') {
+      this.commit('auth/SET_TOKEN', 'dummy-token');
+      return true;
+    }
+    
+    if (action === 'auth/register') {
+      return true;
+    }
+    
+    if (action === 'auth/logout') {
+      this.commit('auth/SET_TOKEN', null);
+    }
+    
+    return false;
   }
-})
+};
+
+export default store;

@@ -34,7 +34,7 @@ const actions = {
     try {
       commit('SET_AUTH_ERROR', null)
       // Here you would make an API call to your backend
-      const response = await fetch('http://localhost:3000/api/auth/login', {
+      const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -60,7 +60,7 @@ const actions = {
   async register({ commit }, userData) {
     try {
       commit('SET_AUTH_ERROR', null)
-      const response = await fetch('http://localhost:3000/api/auth/register', {
+      const response = await fetch('http://localhost:5000/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

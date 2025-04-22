@@ -32,7 +32,7 @@ const actions = {
       commit('SET_LOADING', true)
       commit('SET_ERROR', null)
 
-      const response = await fetch('http://localhost:3000/api/users/profile', {
+      const response = await fetch('http://localhost:5000/api/auth/profile', {
         headers: {
           'Authorization': `Bearer ${rootState.auth.token}`
         }
@@ -57,7 +57,7 @@ const actions = {
       commit('SET_LOADING', true)
       commit('SET_ERROR', null)
 
-      const response = await fetch('http://localhost:3000/api/users/profile', {
+      const response = await fetch('http://localhost:5000/api/auth/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
