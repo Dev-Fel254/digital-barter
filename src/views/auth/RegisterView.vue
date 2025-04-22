@@ -82,6 +82,10 @@
         {{ error }}
       </div>
       
+      <div v-if="success" class="success-message">
+        {{ success }}
+      </div>
+      
       <button type="submit" class="btn btn-primary" :disabled="loading">
         <span v-if="loading">Creating Account...</span>
         <span v-else>REGISTER</span>
@@ -110,6 +114,7 @@ export default {
       securityCode: this.generateSecurityCode(),
       loading: false,
       error: null,
+      success: null,
       errors: {
         username: null,
         securityCode: null
@@ -130,8 +135,9 @@ export default {
       }
     },
     async register() {
-      // Reset errors
+      // Reset errors and success
       this.error = null;
+      this.success = null;
       this.errors.securityCode = null;
       
       // Validate username
@@ -157,7 +163,7 @@ export default {
       this.loading = true;
       
       try {
-        // Remove confirmPassword and enteredCode as they're not needed in the API call
+        // Prepare user data for API call
         const userData = { 
           username: this.form.username,
           email: this.form.email,
@@ -165,11 +171,23 @@ export default {
           newsletter: this.form.newsletter
         };
         
-        // Use our temporary store implementation
+        // Store user data in localStorage for demonstration
+        // In a real app, this would be stored in a database
+        localStorage.setItem('lastRegisteredUser', JSON.stringify({
+          username: this.form.username,
+          email: this.form.email
+        }));
+        
+        // Log registration attempt
         console.log('Registration attempted with:', userData);
         
-        // Simulate successful registration
-        this.$router.push('/auth/login');
+        // Show success message
+        this.success = 'Account created successfully! Redirecting to login...';
+        
+        // Simulate successful registration with delay for showing the success message
+        setTimeout(() => {
+          this.$router.push('/auth/login');
+        }, 2000);
       } catch (error) {
         this.error = error.message || 'Registration failed. Please try again.';
       } finally {
@@ -260,6 +278,14 @@ export default {
 .error-message {
   background-color: rgba(244, 67, 54, 0.1);
   color: #f44336;
+  padding: 0.75rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.success-message {
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #4CAF50;
   padding: 0.75rem;
   border-radius: 4px;
   font-size: 0.9rem;

@@ -11,6 +11,12 @@ const requireAuth = (to, from, next) => {
   }
 }
 
+// Global navigation guard to handle auth state changes
+const handleAuthStateChange = () => {
+  // Trigger auth change event on navigation
+  window.dispatchEvent(new Event('user-auth-change'))
+}
+
 const routes = [
   {
     path: '/',
@@ -130,5 +136,8 @@ const router = createRouter({
     }
   }
 })
+
+// Add global after navigation hook
+router.afterEach(handleAuthStateChange)
 
 export default router

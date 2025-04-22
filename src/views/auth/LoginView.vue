@@ -41,6 +41,10 @@
         <div v-if="error" class="alert alert-danger">
           {{ error }}
         </div>
+        
+        <div v-if="success" class="alert alert-success">
+          {{ success }}
+        </div>
 
         <button type="submit" class="btn btn-primary btn-block" :disabled="loading">
           <span v-if="loading">
@@ -70,7 +74,8 @@ export default {
       password: '',
       showPassword: false,
       loading: false,
-      error: null
+      error: null,
+      success: null
     }
   },
   methods: {
@@ -83,16 +88,38 @@ export default {
         // This will be replaced with actual Vuex store dispatch when dependencies are installed
         console.log('Login attempted with:', this.email, this.password)
         
-        // Simulate a successful login
-        localStorage.setItem('token', 'dummy-token')
-        localStorage.setItem('user', JSON.stringify({
-          name: 'Mark Beezy',
-          email: this.email,
-          registrationDate: '04/22/2025'
-        }))
+        // Get the last registered user if it exists
+        const lastRegisteredUser = JSON.parse(localStorage.getItem('lastRegisteredUser') || '{}')
         
-        // Redirect to categories page instead of dashboard
-        this.$router.push('/categories')
+        // Use the username from the last registered user if available
+        // or use the email username part as a fallback
+        let userName = lastRegisteredUser.username || this.email.split('@')[0]
+        
+        // Capitalize the first letter of the username
+        userName = userName.charAt(0).toUpperCase() + userName.slice(1)
+        
+        // Simulate a successful login
+        const userData = {
+          name: userName,
+          email: this.email,
+          registrationDate: new Date().toLocaleDateString()
+        }
+        
+        // Store user data in localStorage
+        localStorage.setItem('token', 'dummy-token')
+        localStorage.setItem('user', JSON.stringify(userData))
+        
+        // Create a success message
+        this.success = 'Login successful! Redirecting...'
+        
+        // Trigger an event to notify components that user auth has changed
+        // This must happen AFTER localStorage is updated
+        window.dispatchEvent(new Event('user-auth-change'))
+        
+        // Redirect to categories page after a short delay
+        setTimeout(() => {
+          this.$router.push('/categories')
+        }, 1000)
       } catch (err) {
         this.error = err.message || 'Failed to login'
       } finally {
@@ -222,6 +249,14 @@ export default {
   .alert-danger {
     background-color: rgba(var(--error-color), 0.1);
     color: var(--error-color);
+    padding: 0.75rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+  }
+  
+  .alert-success {
+    background-color: rgba(76, 175, 80, 0.1);
+    color: #4CAF50;
     padding: 0.75rem;
     border-radius: 4px;
     font-size: 0.9rem;

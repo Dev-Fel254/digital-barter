@@ -76,18 +76,25 @@ export default {
   name: 'TheHeader',
   data() {
     return {
-      showAccountMenu: false
+      showAccountMenu: false,
+      forceRender: 0 // Force component re-render when this changes
     }
   },
   computed: {
     isAuthenticated() {
+      // Force re-evaluation when forceRender changes
+      this.forceRender;
       return !!localStorage.getItem('token')
     },
     userName() {
+      // Force re-evaluation when forceRender changes
+      this.forceRender;
       const user = JSON.parse(localStorage.getItem('user') || '{}')
       return user.name || 'User'
     },
     userInitials() {
+      // Force re-evaluation when forceRender changes
+      this.forceRender;
       const user = JSON.parse(localStorage.getItem('user') || '{}')
       if (!user.name) return 'U'
       
@@ -111,14 +118,24 @@ export default {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
       
+      // Force re-render
+      this.forceRender++
+      
       // Close the account menu
       this.showAccountMenu = false
       
       // Redirect to home page
       this.$router.push('/')
+    },
+    updateUserData() {
+      // Force re-render to update computed properties
+      this.forceRender++
     }
   },
   mounted() {
+    // Set up a global event bus for auth state changes
+    window.addEventListener('user-auth-change', this.updateUserData)
+    
     // Close account menu when clicking outside
     document.addEventListener('click', (event) => {
       const accountSection = document.querySelector('.account-section')
@@ -126,6 +143,10 @@ export default {
         this.showAccountMenu = false
       }
     })
+  },
+  beforeUnmount() {
+    // Clean up event listeners
+    window.removeEventListener('user-auth-change', this.updateUserData)
   }
 }
 </script>
