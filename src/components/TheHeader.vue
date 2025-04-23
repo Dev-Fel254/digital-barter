@@ -2,6 +2,7 @@
   <header class="header">
     <nav class="navbar navbar-expand-lg">
       <div class="container">
+        <!-- Logo -->
         <router-link to="/" class="navbar-brand">
           <div class="logo">
             <span class="logo-text">DIGITAL</span>
@@ -9,10 +10,28 @@
           </div>
         </router-link>
         
+        <!-- Mobile Toggle Button -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
           <span class="navbar-toggler-icon"></span>
         </button>
         
+        <!-- Mobile Actions -->
+        <div class="mobile-actions">
+          <button class="icon-button search-button" @click="toggleSearch">
+            <i class="fas fa-search"></i>
+          </button>
+          
+          <div class="mobile-profile">
+            <router-link v-if="!isAuthenticated" to="/auth/login" class="icon-button">
+              <i class="fas fa-user"></i>
+            </router-link>
+            <div v-else class="user-profile" @click="toggleAccountMenu">
+              <div class="user-avatar">{{ userInitials }}</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Main Navigation -->
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto align-items-center">
             <li class="nav-item">
@@ -30,44 +49,72 @@
             <li class="nav-item">
               <router-link to="/categories" class="nav-link">CATEGORY DISPLAY</router-link>
             </li>
-            <!-- Search and Account Icons -->
-            <li class="nav-item ms-2">
-              <button class="icon-button" @click="toggleSearch">
-                <i class="fas fa-search"></i>
-              </button>
-            </li>
-            <li class="nav-item ms-2">
-              <div class="account-section">
-                <router-link v-if="!isAuthenticated" to="/auth/login" class="icon-button">
-                  <i class="fas fa-user"></i>
-                </router-link>
-                <div v-else class="user-profile" @click="toggleAccountMenu">
-                  <div class="user-avatar">{{ userInitials }}</div>
-                  <div class="account-dropdown" v-if="showAccountMenu">
-                    <div class="dropdown-header">
-                      Welcome, {{ userName }}!
-                    </div>
-                    <router-link to="/dashboard/profile" class="dropdown-item">
-                      <i class="fas fa-user-circle"></i> My Profile
-                    </router-link>
-                    <router-link to="/categories" class="dropdown-item">
-                      <i class="fas fa-box"></i> My Items
-                    </router-link>
-                    <router-link to="/dashboard/transactions" class="dropdown-item">
-                      <i class="fas fa-exchange-alt"></i> My Trades
-                    </router-link>
-                    <div class="dropdown-divider"></div>
-                    <button @click="logout" class="dropdown-item text-danger">
-                      <i class="fas fa-sign-out-alt"></i> Logout
-                    </button>
+            
+            <!-- Desktop Actions -->
+            <div class="desktop-actions">
+              <li class="nav-item ms-2">
+                <button class="icon-button" @click="toggleSearch">
+                  <i class="fas fa-search"></i>
+                </button>
+              </li>
+              <li class="nav-item ms-2">
+                <div class="desktop-profile">
+                  <router-link v-if="!isAuthenticated" to="/auth/login" class="icon-button">
+                    <i class="fas fa-user"></i>
+                  </router-link>
+                  <div v-else class="user-profile" @click="toggleAccountMenu">
+                    <div class="user-avatar">{{ userInitials }}</div>
                   </div>
                 </div>
-              </div>
-            </li>
+              </li>
+            </div>
           </ul>
         </div>
       </div>
     </nav>
+    
+    <!-- Desktop Profile Dropdown -->
+    <div class="desktop-dropdown" v-if="showAccountMenu && !isMobile">
+      <div class="dropdown-header">
+        Welcome, {{ userName }}!
+      </div>
+      <router-link to="/dashboard/profile" class="dropdown-item" @click="closeAccountMenu">
+        <i class="fas fa-user-circle"></i> My Profile
+      </router-link>
+      <router-link to="/categories" class="dropdown-item" @click="closeAccountMenu">
+        <i class="fas fa-box"></i> My Items
+      </router-link>
+      <router-link to="/dashboard/transactions" class="dropdown-item" @click="closeAccountMenu">
+        <i class="fas fa-exchange-alt"></i> My Trades
+      </router-link>
+      <div class="dropdown-divider"></div>
+      <button @click="logout" class="dropdown-item text-danger">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
+    </div>
+    
+    <!-- Mobile Profile Dropdown -->
+    <div class="mobile-dropdown" v-if="showAccountMenu && isMobile">
+      <div class="dropdown-header">
+        Welcome, {{ userName }}!
+      </div>
+      <router-link to="/dashboard/profile" class="dropdown-item" @click="closeAccountMenu">
+        <i class="fas fa-user-circle"></i> My Profile
+      </router-link>
+      <router-link to="/categories" class="dropdown-item" @click="closeAccountMenu">
+        <i class="fas fa-box"></i> My Items
+      </router-link>
+      <router-link to="/dashboard/transactions" class="dropdown-item" @click="closeAccountMenu">
+        <i class="fas fa-exchange-alt"></i> My Trades
+      </router-link>
+      <div class="dropdown-divider"></div>
+      <button @click="logout" class="dropdown-item text-danger">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
+    </div>
+    
+    <!-- Dropdown Overlay -->
+    <div class="dropdown-overlay" v-if="showAccountMenu" @click="closeAccountMenu"></div>
   </header>
 </template>
 
@@ -77,24 +124,19 @@ export default {
   data() {
     return {
       showAccountMenu: false,
-      forceRender: 0 // Force component re-render when this changes
+      isMobile: false,
+      isSearchOpen: false
     }
   },
   computed: {
     isAuthenticated() {
-      // Force re-evaluation when forceRender changes
-      this.forceRender;
       return !!localStorage.getItem('token')
     },
     userName() {
-      // Force re-evaluation when forceRender changes
-      this.forceRender;
       const user = JSON.parse(localStorage.getItem('user') || '{}')
       return user.name || 'User'
     },
     userInitials() {
-      // Force re-evaluation when forceRender changes
-      this.forceRender;
       const user = JSON.parse(localStorage.getItem('user') || '{}')
       if (!user.name) return 'U'
       
@@ -107,51 +149,76 @@ export default {
   },
   methods: {
     toggleSearch() {
-      // Implement search functionality
-      console.log('Toggle search')
+      this.isSearchOpen = !this.isSearchOpen
+      this.$emit('search-toggle', this.isSearchOpen)
     },
     toggleAccountMenu() {
       this.showAccountMenu = !this.showAccountMenu
+    },
+    closeAccountMenu() {
+      this.showAccountMenu = false
     },
     logout() {
       // Clear user data from localStorage
       localStorage.removeItem('token')
       localStorage.removeItem('user')
       
-      // Force re-render
-      this.forceRender++
+      // Close account menu
+      this.closeAccountMenu()
       
-      // Close the account menu
-      this.showAccountMenu = false
+      // Update user data
+      this.updateUserData()
       
       // Redirect to home page
       this.$router.push('/')
     },
     updateUserData() {
-      // Force re-render to update computed properties
-      this.forceRender++
+      // You might want to update user data in Vuex store or emit an event
+      // This is a placeholder for that functionality
+    },
+    checkScreenSize() {
+      this.isMobile = window.innerWidth < 992
     }
   },
   mounted() {
-    // Set up a global event bus for auth state changes
-    window.addEventListener('user-auth-change', this.updateUserData)
+    // Check screen size initially and on resize
+    this.checkScreenSize()
+    window.addEventListener('resize', this.checkScreenSize)
     
     // Close account menu when clicking outside
     document.addEventListener('click', (event) => {
-      const accountSection = document.querySelector('.account-section')
-      if (accountSection && !accountSection.contains(event.target)) {
-        this.showAccountMenu = false
+      const mobileProfile = document.querySelector('.mobile-profile')
+      const desktopProfile = document.querySelector('.desktop-profile')
+      const mobileDropdown = document.querySelector('.mobile-dropdown')
+      const desktopDropdown = document.querySelector('.desktop-dropdown')
+      
+      if (
+        this.showAccountMenu && 
+        ((mobileProfile && !mobileProfile.contains(event.target) && mobileDropdown && !mobileDropdown.contains(event.target)) ||
+        (desktopProfile && !desktopProfile.contains(event.target) && desktopDropdown && !desktopDropdown.contains(event.target)))
+      ) {
+        this.closeAccountMenu()
       }
     })
   },
   beforeUnmount() {
     // Clean up event listeners
-    window.removeEventListener('user-auth-change', this.updateUserData)
+    window.removeEventListener('resize', this.checkScreenSize)
   }
 }
 </script>
 
 <style lang="scss" scoped>
+/* Variables */
+:root {
+  --primary-color: #FFD700;
+  --secondary-color: #FF6B6B;
+  --text-color: #333333;
+  --border-color: #e9ecef;
+  --error-color: #dc3545;
+}
+
+/* Header Styles */
 .header {
   background-color: white;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -164,6 +231,7 @@ export default {
   padding: 0.75rem 0;
 }
 
+/* Logo Styles */
 .logo {
   display: flex;
   flex-direction: column;
@@ -181,21 +249,30 @@ export default {
   }
 }
 
+.gradient-text {
+  background: linear-gradient(45deg, #FFD700, #FF6B6B);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Navigation Styles */
 .nav-link {
   padding: 0.5rem 1rem;
-  color: var(--text-color);
+  color: #333333;
   font-weight: 500;
   transition: all 0.3s ease;
   
   &:hover, &.router-link-active {
-    color: var(--primary-color);
+    color: #FFD700;
   }
 }
 
+/* Button Styles */
 .icon-button {
   background: none;
   border: none;
-  color: var(--text-color);
+  color: #333333;
   font-size: 1.2rem;
   width: 40px;
   height: 40px;
@@ -207,12 +284,13 @@ export default {
   transition: all 0.3s ease;
   
   &:hover {
-    background-color: rgba(var(--primary-color-rgb), 0.1);
-    color: var(--primary-color);
+    background-color: rgba(255, 215, 0, 0.1);
+    color: #FFD700;
   }
 }
 
-.account-section {
+/* Profile Styles */
+.mobile-profile, .desktop-profile {
   position: relative;
 }
 
@@ -224,70 +302,124 @@ export default {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  background: linear-gradient(45deg, #FFD700, #FF6B6B);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
   font-size: 0.9rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.account-dropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  width: 220px;
+/* Mobile/Desktop Actions */
+.mobile-actions {
+  display: none;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.desktop-actions {
+  display: flex;
+  align-items: center;
+}
+
+/* Dropdown Styles */
+.desktop-dropdown, .mobile-dropdown {
   background: white;
   border-radius: 8px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  z-index: 1000;
-  margin-top: 0.5rem;
+  z-index: 1010;
+}
+
+.desktop-dropdown {
+  position: absolute;
+  top: 60px;
+  right: 1rem;
+  width: 220px;
+}
+
+.mobile-dropdown {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  border-radius: 12px 12px 0 0;
+}
+
+.dropdown-header {
+  padding: 1rem;
+  background: linear-gradient(45deg, #FFD700, #FF6B6B);
+  color: white;
+  font-weight: 600;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  color: #333333;
+  text-decoration: none;
+  transition: all 0.2s ease;
   
-  .dropdown-header {
-    padding: 1rem;
-    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
-    color: white;
-    font-weight: 600;
+  i {
+    width: 20px;
+    text-align: center;
   }
   
-  .dropdown-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    color: var(--text-color);
-    text-decoration: none;
-    transition: all 0.2s ease;
-    
-    i {
-      width: 20px;
-      text-align: center;
-    }
+  &:hover {
+    background-color: rgba(255, 215, 0, 0.1);
+  }
+  
+  &.text-danger {
+    color: #dc3545;
     
     &:hover {
-      background-color: rgba(var(--primary-color-rgb), 0.1);
+      background-color: rgba(220, 53, 69, 0.1);
     }
-    
-    &.text-danger {
-      color: var(--error-color);
-      
-      &:hover {
-        background-color: rgba(var(--error-color-rgb), 0.1);
-      }
-    }
-  }
-  
-  .dropdown-divider {
-    height: 1px;
-    background-color: var(--border-color);
-    margin: 0.25rem 0;
   }
 }
 
-// Responsive adjustments
-@media (max-width: 992px) {
+.dropdown-divider {
+  height: 1px;
+  background-color: #e9ecef;
+  margin: 0.25rem 0;
+}
+
+.dropdown-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1005;
+}
+
+/* Responsive Styles */
+@media (min-width: 992px) {
+  .desktop-actions {
+    display: flex;
+  }
+  
+  .mobile-actions {
+    display: none;
+  }
+}
+
+@media (max-width: 991px) {
+  .mobile-actions {
+    display: flex;
+    margin-right: 3rem;
+  }
+  
+  .desktop-actions {
+    display: none;
+  }
+  
   .navbar-nav {
     padding: 1rem 0;
   }
@@ -297,16 +429,23 @@ export default {
     text-align: center;
     margin: 0.25rem 0;
   }
+}
+
+@media (max-width: 576px) {
+  .mobile-actions {
+    position: absolute;
+    top: 0.75rem;
+    right: 50%;
+    transform: translateX(50%);
+    margin-right: 0;
+  }
   
-  .account-dropdown {
-    position: fixed;
-    top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    border-radius: 12px 12px 0 0;
-    margin-top: 0;
+  .navbar-toggler {
+    margin-left: auto;
+  }
+  
+  .navbar-brand {
+    margin-right: 0;
   }
 }
 </style>

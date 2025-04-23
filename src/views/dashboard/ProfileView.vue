@@ -11,97 +11,36 @@
 
     <!-- Profile Sections -->
     <div class="profile-grid">
-      <!-- Avatar Section -->
-      <section class="profile-section avatar-section">
-        <div class="avatar-container">
-          <img 
-            :src="profile.avatar || '/default-avatar.png'" 
-            :alt="profile.name"
-            class="profile-avatar"
-          >
-          <div class="avatar-overlay">
-            <label for="avatar-upload" class="upload-btn">
-              <i class="fas fa-camera"></i>
-              Change Photo
-            </label>
-            <input 
-              type="file" 
-              id="avatar-upload" 
-              accept="image/*"
-              @change="handleAvatarUpload"
-              class="hidden"
+      <!-- Left Column -->
+      <div class="profile-column">
+        <!-- Avatar Section -->
+        <section class="profile-section avatar-section">
+          <div class="avatar-container">
+            <img 
+              :src="profile.avatar || '/default-avatar.png'" 
+              :alt="profile.name"
+              class="profile-avatar"
             >
+            <div class="avatar-overlay">
+              <label for="avatar-upload" class="upload-btn">
+                <i class="fas fa-camera"></i>
+                Change Photo
+              </label>
+              <input 
+                type="file" 
+                id="avatar-upload" 
+                accept="image/*"
+                @change="handleAvatarUpload"
+                class="hidden"
+              >
+            </div>
           </div>
-        </div>
-        <p class="avatar-help">Click to upload a new photo</p>
-      </section>
+          <p class="avatar-help">Click to upload a new photo</p>
+        </section>
 
-      <!-- Personal Information -->
-      <section class="profile-section">
-        <h2>Personal Information</h2>
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="name">Full Name</label>
-            <input 
-              type="text" 
-              id="name" 
-              v-model="profile.name"
-              placeholder="Your full name"
-            >
-          </div>
-          
-          <div class="form-group">
-            <label for="location">Location</label>
-            <input 
-              type="text" 
-              id="location" 
-              v-model="profile.location"
-              placeholder="City, Country"
-            >
-          </div>
-
-          <div class="form-group full-width">
-            <label for="bio">Bio</label>
-            <textarea 
-              id="bio" 
-              v-model="profile.bio"
-              placeholder="Tell others about yourself"
-              rows="3"
-            ></textarea>
-          </div>
-        </div>
-      </section>
-
-      <!-- Contact Information -->
-      <section class="profile-section">
-        <h2>Contact Information</h2>
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="email">Email</label>
-            <input 
-              type="email" 
-              id="email" 
-              v-model="profile.email"
-              placeholder="your@email.com"
-            >
-          </div>
-
-          <div class="form-group">
-            <label for="phone">Phone Number</label>
-            <input 
-              type="tel" 
-              id="phone" 
-              v-model="profile.phone"
-              placeholder="+1234567890"
-            >
-          </div>
-        </div>
-      </section>
-
-      <!-- Trade Preferences -->
-      <section class="profile-section">
-        <h2>Trade Preferences</h2>
-        <div class="form-grid">
+        <!-- Trade Preferences -->
+        <section class="profile-section">
+          <h2>Trade Preferences</h2>
           <div class="form-group full-width">
             <label>Interested Categories</label>
             <div class="categories-grid">
@@ -133,47 +72,99 @@
               max="100"
               class="range-slider"
             >
-            <div class="range-value">{{ profile.tradeRadius }}km</div>
+            <p class="range-value">{{ profile.tradeRadius }} km</p>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
-      <!-- Notification Settings -->
-      <section class="profile-section">
-        <h2>Notification Settings</h2>
-        <div class="form-grid">
-          <div class="form-group full-width">
-            <div class="notification-options">
-              <label class="toggle-switch">
-                <input 
-                  type="checkbox" 
-                  v-model="profile.notifications.email"
-                >
-                <span class="toggle-slider"></span>
-                Email Notifications
-              </label>
+      <!-- Right Column -->
+      <div class="profile-column">
+        <!-- Personal Information -->
+        <section class="profile-section">
+          <h2>Personal Information</h2>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="name">Full Name</label>
+              <input 
+                type="text" 
+                id="name" 
+                v-model="profile.name"
+                placeholder="Your full name"
+              >
+            </div>
+            
+            <div class="form-group">
+              <label for="location">Location</label>
+              <input 
+                type="text" 
+                id="location" 
+                v-model="profile.location"
+                placeholder="City, Country"
+              >
+            </div>
 
-              <label class="toggle-switch">
-                <input 
-                  type="checkbox" 
-                  v-model="profile.notifications.push"
-                >
-                <span class="toggle-slider"></span>
-                Push Notifications
-              </label>
-
-              <label class="toggle-switch">
-                <input 
-                  type="checkbox" 
-                  v-model="profile.notifications.trades"
-                >
-                <span class="toggle-slider"></span>
-                Trade Updates
-              </label>
+            <div class="form-group full-width">
+              <label for="bio">Bio</label>
+              <textarea 
+                id="bio" 
+                v-model="profile.bio"
+                placeholder="Tell others about yourself"
+                rows="3"
+              ></textarea>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        <!-- Contact Information -->
+        <section class="profile-section">
+          <h2>Contact Information</h2>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input 
+                type="email" 
+                id="email" 
+                v-model="profile.email"
+                placeholder="your@email.com"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input 
+                type="tel" 
+                id="phone" 
+                v-model="profile.phone"
+                placeholder="+1234567890"
+              >
+            </div>
+          </div>
+        </section>
+
+        <!-- Notification Settings -->
+        <section class="profile-section">
+          <h2>Notification Settings</h2>
+          <div class="notification-options">
+            <label class="toggle-switch">
+              <input type="checkbox" v-model="profile.notifications.email">
+              <span class="toggle-slider"></span>
+              Email Notifications
+            </label>
+            
+            <label class="toggle-switch">
+              <input type="checkbox" v-model="profile.notifications.push">
+              <span class="toggle-slider"></span>
+              Push Notifications
+            </label>
+            
+            <label class="toggle-switch">
+              <input type="checkbox" v-model="profile.notifications.trades">
+              <span class="toggle-slider"></span>
+              Trade Updates
+            </label>
+          </div>
+        </section>
+      </div>
     </div>
   </div>
 </template>
@@ -183,83 +174,102 @@ export default {
   name: 'ProfileView',
   data() {
     return {
-      hasChanges: false,
       profile: {
         name: 'John Doe',
-        avatar: null,
-        location: 'Nairobi, Kenya',
-        bio: '',
         email: 'john@example.com',
         phone: '',
-        interests: [],
-        tradeRadius: 50,
+        location: 'Nairobi, Kenya',
+        bio: '',
+        avatar: null,
+        tradeRadius: 25,
+        interests: [1, 3],
         notifications: {
           email: true,
-          push: true,
+          push: false,
           trades: true
         }
       },
+      originalProfile: null,
       categories: [
         { id: 1, name: 'Electronics', icon: 'fas fa-laptop' },
-        { id: 2, name: 'Fashion', icon: 'fas fa-tshirt' },
+        { id: 2, name: 'Clothing', icon: 'fas fa-tshirt' },
         { id: 3, name: 'Books', icon: 'fas fa-book' },
-        { id: 4, name: 'Sports', icon: 'fas fa-futbol' },
-        { id: 5, name: 'Art', icon: 'fas fa-palette' },
-        { id: 6, name: 'Home', icon: 'fas fa-home' }
+        { id: 4, name: 'Home', icon: 'fas fa-home' },
+        { id: 5, name: 'Sports', icon: 'fas fa-futbol' },
+        { id: 6, name: 'Art', icon: 'fas fa-paint-brush' }
       ]
     }
   },
   methods: {
     handleAvatarUpload(event) {
       const file = event.target.files[0]
-      if (file) {
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          this.profile.avatar = e.target.result
-          this.hasChanges = true
-        }
-        reader.readAsDataURL(file)
+      if (!file) return
+      
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        this.profile.avatar = e.target.result
       }
+      reader.readAsDataURL(file)
     },
-    async saveChanges() {
-      try {
-        // TODO: Implement API call to save profile changes
-        console.log('Saving profile:', this.profile)
-        this.hasChanges = false
-        // Show success message
-      } catch (error) {
-        console.error('Error saving profile:', error)
-        // Show error message
-      }
+    saveChanges() {
+      // In a real app, this would send data to the server
+      // For now, we'll just update the local storage
+      localStorage.setItem('userProfile', JSON.stringify(this.profile))
+      
+      // Update the original profile to reset the hasChanges computed property
+      this.originalProfile = JSON.parse(JSON.stringify(this.profile))
+      
+      alert('Profile updated successfully!')
     }
   },
   watch: {
     profile: {
       handler() {
-        this.hasChanges = true
+        // This will fire whenever the profile object changes
       },
       deep: true
     }
+  },
+  computed: {
+    hasChanges() {
+      if (!this.originalProfile) return false
+      return JSON.stringify(this.profile) !== JSON.stringify(this.originalProfile)
+    }
+  },
+  mounted() {
+    // Load profile from localStorage if available
+    const savedProfile = localStorage.getItem('userProfile')
+    if (savedProfile) {
+      this.profile = JSON.parse(savedProfile)
+    }
+    
+    // Create a deep copy of the profile for change detection
+    this.originalProfile = JSON.parse(JSON.stringify(this.profile))
   }
 }
 </script>
 
 <style lang="scss" scoped>
 .profile-view {
-  max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 0;
 }
 
 .profile-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
-
+  margin-bottom: 1.5rem;
+  background: white;
+  padding: 1.2rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  
   h1 {
-    font-size: 2rem;
+    font-size: 1.6rem;
     color: #2c3e50;
+    margin-bottom: 0;
   }
 }
 
@@ -267,40 +277,50 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: #FF6B6B;
-  color: white;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
   border: none;
-  border-radius: 8px;
-  cursor: pointer;
+  background: #FFD700;
+  color: #1a1a1a;
   font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
   transition: all 0.3s ease;
-
-  &:hover:not(:disabled) {
-    background: darken(#FF6B6B, 10%);
+  
+  &:hover {
+    background: darken(#FFD700, 10%);
   }
-
+  
   &:disabled {
-    opacity: 0.5;
+    background: #ddd;
+    color: #999;
     cursor: not-allowed;
   }
 }
 
 .profile-grid {
   display: grid;
-  gap: 2rem;
+  grid-template-columns: 1fr 2fr;
+  gap: 1.5rem;
+}
+
+.profile-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .profile-section {
   background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 1.2rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  height: 100%;
 
   h2 {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     color: #2c3e50;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.2rem;
   }
 }
 
@@ -310,9 +330,9 @@ export default {
 
 .avatar-container {
   position: relative;
-  width: 150px;
-  height: 150px;
-  margin: 0 auto 1rem;
+  width: 130px;
+  height: 130px;
+  margin: 0 auto 0.75rem;
   border-radius: 50%;
   overflow: hidden;
   
@@ -350,7 +370,7 @@ export default {
   gap: 0.5rem;
 
   i {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
   }
 }
 
@@ -360,13 +380,14 @@ export default {
 
 .avatar-help {
   color: #666;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
+  gap: 1.2rem;
 }
 
 .form-group {
@@ -376,9 +397,9 @@ export default {
 
   label {
     display: block;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
     color: #666;
-    font-size: 0.875rem;
+    font-size: 0.8rem;
   }
 
   input[type="text"],
@@ -386,10 +407,10 @@ export default {
   input[type="tel"],
   textarea {
     width: 100%;
-    padding: 0.75rem;
+    padding: 0.6rem;
     border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
     transition: border-color 0.3s ease;
 
     &:focus {
@@ -401,8 +422,10 @@ export default {
 
 .categories-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .category-checkbox {
@@ -419,13 +442,19 @@ export default {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
+    padding: 0.4rem 0.8rem;
     background: #f8f9fa;
-    border-radius: 8px;
+    border-radius: 6px;
     transition: all 0.3s ease;
+    font-size: 0.85rem;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 
     i {
       color: #666;
+      flex-shrink: 0;
     }
   }
 
@@ -446,11 +475,13 @@ export default {
   border-radius: 3px;
   outline: none;
   -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 
   &::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     background: #FFD700;
     border-radius: 50%;
     cursor: pointer;
@@ -464,21 +495,23 @@ export default {
 
 .range-value {
   text-align: center;
-  margin-top: 0.5rem;
+  margin-top: 0.4rem;
   color: #666;
+  font-size: 0.8rem;
 }
 
 .notification-options {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.8rem;
 }
 
 .toggle-switch {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.8rem;
   cursor: pointer;
+  font-size: 0.9rem;
 
   input {
     display: none;
@@ -486,17 +519,18 @@ export default {
 
   .toggle-slider {
     position: relative;
-    width: 50px;
-    height: 26px;
+    width: 44px;
+    height: 24px;
     background: #ddd;
-    border-radius: 13px;
+    border-radius: 12px;
     transition: background 0.3s ease;
+    flex-shrink: 0;
 
     &::before {
       content: '';
       position: absolute;
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
       top: 2px;
       left: 2px;
@@ -509,13 +543,52 @@ export default {
     background: #FFD700;
 
     &::before {
-      transform: translateX(24px);
+      transform: translateX(20px);
     }
   }
 }
 
-// Responsive Design
-@media (max-width: 768px) {
+// Large Desktop Responsiveness
+@media (min-width: 1921px) {
+  .profile-view {
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+}
+
+// Desktop Responsiveness
+@media (min-width: 1201px) and (max-width: 1920px) {
+  .profile-view {
+    width: 100%;
+  }
+}
+
+// Tablet Responsiveness
+@media (min-width: 992px) and (max-width: 1200px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-grid {
+    gap: 1rem;
+  }
+  
+  .categories-grid {
+    grid-template-columns: repeat(3, 1fr);
+    max-height: 150px;
+  }
+  
+  .profile-section {
+    padding: 1rem;
+  }
+  
+  .profile-header h1 {
+    font-size: 1.4rem;
+  }
+}
+
+// Mobile Responsiveness
+@media (max-width: 991px) {
   .profile-header {
     flex-direction: column;
     align-items: flex-start;
@@ -527,12 +600,22 @@ export default {
     }
   }
 
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+
   .form-grid {
     grid-template-columns: 1fr;
   }
 
   .categories-grid {
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (max-width: 480px) {
+    .categories-grid {
+      grid-template-columns: 1fr;
+    }
   }
 }
 </style>

@@ -23,11 +23,11 @@ export default {
 
 <style lang="scss">
 :root {
-  --primary-color: #FFD700; // Logo yellow
+  --primary-color: #FFD700; /* Logo yellow */
   --primary-color-rgb: 255, 215, 0;
-  --secondary-color: #FF6B6B; // Logo gradient pink/red
+  --secondary-color: #FF6B6B; /* Logo gradient pink/red */
   --secondary-color-rgb: 255, 107, 107;
-  --accent-color: #FF8C00; // Logo gradient orange
+  --accent-color: #FF8C00; /* Logo gradient orange */
   --text-color: #333333;
   --text-light: #666666;
   --background-light: #f8f9fa;
@@ -142,6 +142,7 @@ body {
 // Logo-specific gradients
 .gradient-text {
   background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
