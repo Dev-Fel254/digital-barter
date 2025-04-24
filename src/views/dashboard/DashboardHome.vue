@@ -4,7 +4,7 @@
     <!-- Welcome Section -->
     <header class="welcome-section">
       <div class="welcome-text">
-        <h1>Welcome Back, {{ user.name }}</h1>
+        <h1>Welcome Back, {{ userName }}</h1>
         <p>Here's what's happening with your trades</p>
       </div>
       <div class="quick-actions">
@@ -135,9 +135,6 @@ export default {
   name: 'DashboardHome',
   data() {
     return {
-      user: {
-        name: 'John Doe' // This will be replaced with actual user data
-      },
       stats: {
         activeTrades: 5,
         completedTrades: 12,
@@ -163,6 +160,22 @@ export default {
         }
       ]
     }
+  },
+  computed: {
+    userName() {
+      // Get the user profile from store
+      const profile = this.$store.getters['user/userProfile'];
+      // Return the name if it exists, otherwise return 'Guest'
+      return profile && typeof profile.name === 'string' ? profile.name : 'Guest';
+    },
+    user() {
+      // Access the user profile directly from the store
+      return this.$store.getters['user/userProfile'] || { name: 'Guest' };
+    }
+  },
+  mounted() {
+    // Fetch user profile if not already loaded
+    this.$store.dispatch('user/fetchUserProfile');
   },
   methods: {
     getActivityIcon(type) {

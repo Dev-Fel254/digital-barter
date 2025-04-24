@@ -36,6 +36,11 @@
             <span>Profile</span>
           </router-link>
           
+          <router-link to="/dashboard/my-items" class="menu-item" @click="closeMobileMenuOnClick">
+            <i class="fas fa-box"></i>
+            <span>My Items</span>
+          </router-link>
+          
           <router-link to="/dashboard/messages" class="menu-item" @click="closeMobileMenuOnClick">
             <i class="fas fa-envelope"></i>
             <span>Messages</span>

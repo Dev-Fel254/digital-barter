@@ -175,14 +175,14 @@ export default {
   data() {
     return {
       profile: {
-        name: 'John Doe',
-        email: 'john@example.com',
+        name: '',
+        email: '',
         phone: '',
-        location: 'Nairobi, Kenya',
+        location: '',
         bio: '',
         avatar: null,
         tradeRadius: 25,
-        interests: [1, 3],
+        interests: [],
         notifications: {
           email: true,
           push: false,
@@ -212,14 +212,29 @@ export default {
       reader.readAsDataURL(file)
     },
     saveChanges() {
-      // In a real app, this would send data to the server
-      // For now, we'll just update the local storage
-      localStorage.setItem('userProfile', JSON.stringify(this.profile))
+      // Update profile in Vuex store
+      const profileData = {
+        name: this.profile.name,
+        email: this.profile.email,
+        location: this.profile.location,
+        bio: this.profile.bio,
+        avatar: this.profile.avatar
+      };
       
-      // Update the original profile to reset the hasChanges computed property
-      this.originalProfile = JSON.parse(JSON.stringify(this.profile))
-      
-      alert('Profile updated successfully!')
+      this.$store.dispatch('user/updateProfile', profileData)
+        .then(success => {
+          if (success) {
+            // Also update localStorage for offline access
+            localStorage.setItem('userProfile', JSON.stringify(this.profile));
+            
+            // Update the original profile to reset the hasChanges computed property
+            this.originalProfile = JSON.parse(JSON.stringify(this.profile));
+            
+            alert('Profile updated successfully!');
+          } else {
+            alert('Failed to update profile. Please try again.');
+          }
+        });
     }
   },
   watch: {
@@ -237,14 +252,27 @@ export default {
     }
   },
   mounted() {
-    // Load profile from localStorage if available
-    const savedProfile = localStorage.getItem('userProfile')
-    if (savedProfile) {
-      this.profile = JSON.parse(savedProfile)
+    // Always fetch user profile
+    this.$store.dispatch('user/fetchUserProfile');
+    
+    // Get profile from store
+    const storeProfile = this.$store.getters['user/userProfile'];
+    
+    // Merge store profile with default values
+    if (storeProfile) {
+      this.profile = {
+        ...this.profile,
+        name: storeProfile.name || '',
+        email: storeProfile.email || '',
+        location: storeProfile.location || '',
+        bio: storeProfile.bio || '',
+        avatar: storeProfile.avatar || null,
+        interests: storeProfile.interests || []
+      };
     }
     
     // Create a deep copy of the profile for change detection
-    this.originalProfile = JSON.parse(JSON.stringify(this.profile))
+    this.originalProfile = JSON.parse(JSON.stringify(this.profile));
   }
 }
 </script>
@@ -286,11 +314,11 @@ export default {
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  
+
   &:hover {
     background: darken(#FFD700, 10%);
   }
-  
+
   &:disabled {
     background: #ddd;
     color: #999;
@@ -335,7 +363,7 @@ export default {
   margin: 0 auto 0.75rem;
   border-radius: 50%;
   overflow: hidden;
-  
+
   &:hover .avatar-overlay {
     opacity: 1;
   }
@@ -568,20 +596,20 @@ export default {
   .profile-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .form-grid {
     gap: 1rem;
   }
-  
+
   .categories-grid {
     grid-template-columns: repeat(3, 1fr);
     max-height: 150px;
   }
-  
+
   .profile-section {
     padding: 1rem;
   }
-  
+
   .profile-header h1 {
     font-size: 1.4rem;
   }
@@ -611,7 +639,7 @@ export default {
   .categories-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   @media (max-width: 480px) {
     .categories-grid {
       grid-template-columns: 1fr;
