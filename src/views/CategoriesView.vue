@@ -56,7 +56,7 @@
               <div class="item-status" :class="item.status.toLowerCase()">{{ item.status }}</div>
               <div class="item-badge" v-if="item.condition">{{ item.condition }}</div>
               <div class="item-image">
-                <img :src="item.image || '/img/no-image.png'" :alt="item.name">
+                <img :src="item.image" :alt="item.name" v-img-fallback>
               </div>
               <div class="item-details">
                 <h3 class="item-name">{{ item.name }}</h3>

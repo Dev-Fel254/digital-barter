@@ -76,12 +76,12 @@
     <!-- Desktop Profile Dropdown -->
     <div class="desktop-dropdown" v-if="showAccountMenu && !isMobile">
       <div class="dropdown-header">
-        Welcome, {{ userName }}!
+        Welcome, {{ isAuthenticated ? userName : 'Guest' }}!
       </div>
       <router-link to="/dashboard/profile" class="dropdown-item" @click="closeAccountMenu">
         <i class="fas fa-user-circle"></i> My Profile
       </router-link>
-      <router-link to="/categories" class="dropdown-item" @click="closeAccountMenu">
+      <router-link to="/dashboard/items" class="dropdown-item" @click="closeAccountMenu">
         <i class="fas fa-box"></i> My Items
       </router-link>
       <router-link to="/dashboard/transactions" class="dropdown-item" @click="closeAccountMenu">
@@ -96,12 +96,12 @@
     <!-- Mobile Profile Dropdown -->
     <div class="mobile-dropdown" v-if="showAccountMenu && isMobile">
       <div class="dropdown-header">
-        Welcome, {{ userName }}!
+        Welcome, {{ isAuthenticated ? userName : 'Guest' }}!
       </div>
       <router-link to="/dashboard/profile" class="dropdown-item" @click="closeAccountMenu">
         <i class="fas fa-user-circle"></i> My Profile
       </router-link>
-      <router-link to="/categories" class="dropdown-item" @click="closeAccountMenu">
+      <router-link to="/dashboard/items" class="dropdown-item" @click="closeAccountMenu">
         <i class="fas fa-box"></i> My Items
       </router-link>
       <router-link to="/dashboard/transactions" class="dropdown-item" @click="closeAccountMenu">
@@ -130,21 +130,57 @@ export default {
   },
   computed: {
     isAuthenticated() {
-      return !!localStorage.getItem('token')
+      // Simple check for token existence
+      return !!localStorage.getItem('token');
     },
     userName() {
-      const user = JSON.parse(localStorage.getItem('user') || '{}')
-      return user.name || 'User'
+      if (!this.isAuthenticated) {
+        return 'Guest';
+      }
+      
+      try {
+        // Get directly from localStorage for reliability
+        const userProfileStr = localStorage.getItem('userProfile');
+        if (userProfileStr) {
+          const userProfile = JSON.parse(userProfileStr);
+          if (userProfile && userProfile.name) {
+            return userProfile.name;
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing userProfile from localStorage', error);
+      }
+      
+      // Default fallback
+      return 'User';
     },
     userInitials() {
-      const user = JSON.parse(localStorage.getItem('user') || '{}')
-      if (!user.name) return 'U'
-      
-      const nameParts = user.name.split(' ')
-      if (nameParts.length > 1) {
-        return (nameParts[0][0] + nameParts[1][0]).toUpperCase()
+      if (!this.isAuthenticated) {
+        return 'G';
       }
-      return nameParts[0][0].toUpperCase()
+      
+      try {
+        // Get directly from localStorage for reliability
+        const userProfileStr = localStorage.getItem('userProfile');
+        if (userProfileStr) {
+          const userProfile = JSON.parse(userProfileStr);
+          if (userProfile && userProfile.name) {
+            const name = userProfile.name;
+            const nameParts = name.split(' ');
+            
+            // Calculate initials
+            if (nameParts.length > 1) {
+              return (nameParts[0][0] + nameParts[1][0]).toUpperCase();
+            }
+            return nameParts[0][0].toUpperCase();
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing userProfile from localStorage', error);
+      }
+      
+      // Default fallback
+      return 'U';
     }
   },
   methods: {
@@ -159,22 +195,52 @@ export default {
       this.showAccountMenu = false
     },
     logout() {
-      // Clear user data from localStorage
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      
-      // Close account menu
+      // Close account menu first
       this.closeAccountMenu()
       
-      // Update user data
-      this.updateUserData()
+      // Clear localStorage
+      localStorage.removeItem('token')
+      localStorage.removeItem('userProfile')
       
-      // Redirect to home page
-      this.$router.push('/')
+      // Force a page reload
+      window.location.reload()
     },
     updateUserData() {
-      // You might want to update user data in Vuex store or emit an event
-      // This is a placeholder for that functionality
+      // Check authentication state
+      const token = localStorage.getItem('token')
+      const storeAuth = this.$store.getters['auth/isAuthenticated']
+      
+      // Handle inconsistent state
+      if (token && !storeAuth) {
+        // Token exists but store says not authenticated
+        this.$store.commit('auth/SET_TOKEN', token)
+      } else if (!token && storeAuth) {
+        // Store says authenticated but no token
+        this.$store.commit('auth/SET_TOKEN', null)
+      }
+      
+      // Handle user profile
+      if (token) {
+        // If authenticated, ensure profile is loaded
+        const profile = this.$store.getters['user/userProfile']
+        if (!profile || !profile.name) {
+          // Try to load from localStorage
+          try {
+            const savedProfile = localStorage.getItem('userProfile')
+            if (savedProfile) {
+              this.$store.commit('user/SET_USER_PROFILE', JSON.parse(savedProfile))
+            }
+          } catch (error) {
+            console.error('Error loading profile from localStorage', error)
+          }
+        }
+      } else {
+        // If not authenticated, clear profile
+        this.$store.commit('user/SET_USER_PROFILE', null)
+      }
+      
+      // Force UI update
+      this.$forceUpdate()
     },
     checkScreenSize() {
       this.isMobile = window.innerWidth < 992
@@ -184,6 +250,12 @@ export default {
     // Check screen size initially and on resize
     this.checkScreenSize()
     window.addEventListener('resize', this.checkScreenSize)
+    
+    // Initialize user data
+    this.updateUserData()
+    
+    // Listen for auth state changes
+    window.addEventListener('user-auth-change', this.updateUserData)
     
     // Close account menu when clicking outside
     document.addEventListener('click', (event) => {
@@ -204,6 +276,7 @@ export default {
   beforeUnmount() {
     // Clean up event listeners
     window.removeEventListener('resize', this.checkScreenSize)
+    window.removeEventListener('user-auth-change', this.updateUserData)
   }
 }
 </script>

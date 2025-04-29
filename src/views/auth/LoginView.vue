@@ -40,6 +40,9 @@
 
         <div v-if="error" class="alert alert-danger">
           {{ error }}
+          <div v-if="error.includes('Invalid login')" class="mt-2">
+            <small>Don't have an account? <router-link to="/auth/register">Register now</router-link></small>
+          </div>
         </div>
         
         <div v-if="success" class="alert alert-success">
@@ -102,22 +105,41 @@ export default {
     async handleLogin() {
       this.loading = true
       this.error = null
+      this.success = null
 
       try {
         // Sign in with email and password using Supabase
-        const data = await authService.signIn(this.email, this.password)
+        const { data, error } = await authService.signIn(this.email, this.password)
+        
+        // Check for login errors
+        if (error) {
+          throw new Error(error.message)
+        }
+        
+        if (!data || !data.user) {
+          throw new Error('Invalid login credentials')
+        }
         
         // Get user data from Supabase response
         const user = data.user
         
-        // Store user data in localStorage for the app to use
-        localStorage.setItem('token', data.session.access_token)
-        localStorage.setItem('user', JSON.stringify({
+        // Create user profile data
+        const userProfile = {
           name: user.user_metadata.full_name || user.email.split('@')[0],
           email: user.email,
           avatar: user.user_metadata.avatar_url,
+          location: user.user_metadata.location || '',
+          bio: user.user_metadata.bio || '',
           registrationDate: new Date().toLocaleDateString()
-        }))
+        }
+        
+        // Store user data in localStorage for the app to use
+        localStorage.setItem('token', data.session.access_token)
+        localStorage.setItem('userProfile', JSON.stringify(userProfile))
+        
+        // Update store with user data
+        this.$store.commit('auth/SET_TOKEN', data.session.access_token)
+        this.$store.commit('user/SET_USER_PROFILE', userProfile)
         
         // Create a success message
         this.success = 'Login successful! Redirecting...'
@@ -125,12 +147,14 @@ export default {
         // Trigger an event to notify components that user auth has changed
         window.dispatchEvent(new Event('user-auth-change'))
         
-        // Redirect to categories page after a short delay
+        // Show success message briefly, then reload and redirect
         setTimeout(() => {
-          this.$router.push('/categories')
+          // Redirect to dashboard with a full page reload
+          window.location.href = '/dashboard'
         }, 1000)
       } catch (err) {
         this.error = err.message || 'Failed to login'
+        console.error('Login error:', err)
       } finally {
         this.loading = false
       }
@@ -189,8 +213,8 @@ export default {
     font-size: 2rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
-    text-align: center;
     background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }

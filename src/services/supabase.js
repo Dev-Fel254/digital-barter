@@ -1,18 +1,64 @@
-// Mock Supabase client implementation
+// Mock Supabase client implementation with user database
 // This is a temporary solution until you can install the actual @supabase/supabase-js package
+
+// Get registered users from localStorage or initialize empty array
+export const getRegisteredUsers = () => {
+  try {
+    const usersJson = localStorage.getItem('registeredUsers');
+    return usersJson ? JSON.parse(usersJson) : [];
+  } catch (error) {
+    console.error('Error getting registered users:', error);
+    return [];
+  }
+};
+
+// Save registered users to localStorage
+export const saveRegisteredUsers = (users) => {
+  try {
+    localStorage.setItem('registeredUsers', JSON.stringify(users));
+  } catch (error) {
+    console.error('Error saving registered users:', error);
+  }
+};
 
 // Mock Supabase client
 const supabase = {
   auth: {
     signUp: async ({ email, password, options }) => {
       console.log('Mock signUp called with:', { email, password, options });
-      // Simulate successful registration
+      
+      // Get current registered users
+      const users = getRegisteredUsers();
+      
+      // Check if user already exists
+      if (users.some(user => user.email === email)) {
+        return {
+          data: null,
+          error: {
+            message: 'User with this email already exists'
+          }
+        };
+      }
+      
+      // Create new user
+      const newUser = {
+        id: 'user-' + Date.now(),
+        email,
+        password, // In a real app, this would be hashed
+        user_metadata: options?.data || {}
+      };
+      
+      // Add to registered users
+      users.push(newUser);
+      saveRegisteredUsers(users);
+      
+      // Return successful registration
       return {
         data: {
           user: {
-            id: 'mock-user-id',
+            id: newUser.id,
             email,
-            user_metadata: options?.data || {}
+            user_metadata: newUser.user_metadata
           },
           session: null
         },
@@ -22,14 +68,30 @@ const supabase = {
     
     signInWithPassword: async ({ email, password }) => {
       console.log('Mock signInWithPassword called with:', { email, password });
-      // Simulate successful login
+      
+      // Get registered users
+      const users = getRegisteredUsers();
+      
+      // Find user with matching email and password
+      const user = users.find(u => u.email === email && u.password === password);
+      
+      if (!user) {
+        return {
+          data: null,
+          error: {
+            message: 'Invalid login credentials'
+          }
+        };
+      }
+      
+      // Return successful login
       return {
         data: {
           user: {
-            id: 'mock-user-id',
-            email,
-            user_metadata: {
-              full_name: email.split('@')[0],
+            id: user.id,
+            email: user.email,
+            user_metadata: user.user_metadata || {
+              full_name: user.email.split('@')[0],
               avatar_url: null
             }
           },

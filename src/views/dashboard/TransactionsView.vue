@@ -105,7 +105,7 @@
             <div class="main-row" @click="toggleTransaction(transaction.id)">
               <div class="td item-cell">
                 <div class="item-image">
-                  <img :src="transaction.itemImage" :alt="transaction.itemName">
+                  <img :src="transaction.itemImage" :alt="transaction.itemName" v-img-fallback>
                 </div>
                 <div class="item-info">
                   <h4>{{ transaction.itemName }}</h4>
@@ -115,7 +115,7 @@
               
               <div class="td partner-cell">
                 <div class="partner-avatar">
-                  <img :src="transaction.partnerAvatar" :alt="transaction.partnerName">
+                  <img :src="transaction.partnerAvatar" :alt="transaction.partnerName" v-img-fallback>
                 </div>
                 <div class="partner-info">
                   <h4>{{ transaction.partnerName }}</h4>
@@ -179,14 +179,14 @@
                   <h5>Item Details</h5>
                   <div class="items-comparison">
                     <div class="trade-item">
-                      <img :src="transaction.itemImage" :alt="transaction.itemName">
+                      <img :src="transaction.itemImage" :alt="transaction.itemName" v-img-fallback>
                       <h6>Your Item</h6>
                       <p>{{ transaction.itemName }}</p>
                       <span class="item-condition">{{ transaction.itemCondition }}</span>
                     </div>
                     <i class="fas fa-exchange-alt"></i>
                     <div class="trade-item">
-                      <img :src="transaction.tradeItemImage" :alt="transaction.tradeItem">
+                      <img :src="transaction.tradeItemImage" :alt="transaction.tradeItem" v-img-fallback>
                       <h6>Their Item</h6>
                       <p>{{ transaction.tradeItem }}</p>
                       <span class="item-condition">{{ transaction.tradeItemCondition }}</span>

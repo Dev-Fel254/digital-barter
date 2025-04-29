@@ -102,8 +102,16 @@ const store = {
     }
     
     if (action === 'auth/logout') {
+      // Clear all auth and user data
       this.commit('auth/SET_TOKEN', null);
       this.commit('user/SET_USER_PROFILE', null);
+      
+      // Clear localStorage
+      localStorage.removeItem('token');
+      localStorage.removeItem('userProfile');
+      
+      // Return success to allow chaining
+      return true;
     }
     
     // User actions

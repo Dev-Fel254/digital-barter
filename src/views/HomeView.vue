@@ -1,6 +1,7 @@
 <template>
   <div class="home">
     <HeroSlider />
+    <NewAdditions />
     <FeatureCards />
   </div>
 </template>
@@ -8,12 +9,14 @@
 <script>
 import HeroSlider from '@/components/HeroSlider.vue'
 import FeatureCards from '@/components/FeatureCards.vue'
+import NewAdditions from '@/components/NewAdditions.vue'
 
 export default {
   name: 'HomeView',
   components: {
     HeroSlider,
-    FeatureCards
+    FeatureCards,
+    NewAdditions
   }
 }
 </script>

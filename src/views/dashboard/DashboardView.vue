@@ -71,7 +71,7 @@
       <div 
         class="mobile-overlay" 
         v-if="isMobileMenuOpen" 
-        @click="toggleMobileMenu"
+        @click="closeMobileMenu"
       ></div>
     </transition>
   </div>
@@ -91,6 +91,9 @@ export default {
   methods: {
     toggleMobileMenu() {
       this.isMobileMenuOpen = !this.isMobileMenuOpen
+    },
+    closeMobileMenu() {
+      this.isMobileMenuOpen = false
     },
     closeMobileMenuOnClick() {
       if (this.isMobile) {
@@ -282,7 +285,7 @@ export default {
   z-index: 90;
 }
 
-// Transitions
+/* Transitions */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;
@@ -293,7 +296,7 @@ export default {
   opacity: 0;
 }
 
-// Large Desktop Responsiveness
+/* Large Desktop Responsiveness */
 @media (min-width: 1921px) {
   .dashboard-container {
     max-width: 1920px;
@@ -301,7 +304,7 @@ export default {
   }
 }
 
-// Desktop Responsiveness
+/* Desktop Responsiveness */
 @media (min-width: 992px) {
   .sidebar {
     position: sticky;
@@ -347,23 +350,16 @@ export default {
       transform: translateX(0);
     }
   }
-  
-  .mobile-menu-toggle {
-    display: block;
-    position: absolute;
-    left: 1rem;
-    z-index: 95;
-  }
-  
-  .mobile-close {
-    display: block;
-  }
 }
 
 // Small Mobile Responsiveness
 @media (max-width: 576px) {
   .mobile-header {
     padding: 0.75rem 0.5rem;
+  }
+  
+  .sidebar {
+    width: 260px;
   }
   
   .main-content {

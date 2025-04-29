@@ -173,7 +173,12 @@ export default {
         };
         
         // Register user with Supabase
-        await authService.signUp(this.form.email, this.form.password, userData);
+        const { error } = await authService.signUp(this.form.email, this.form.password, userData);
+        
+        // Check for registration errors
+        if (error) {
+          throw new Error(error.message);
+        }
         
         // Store user data in localStorage for later use in login
         localStorage.setItem('lastRegisteredUser', JSON.stringify({
@@ -182,14 +187,15 @@ export default {
         }));
         
         // Show success message
-        this.success = 'Account created successfully! Please check your email to confirm your account. Redirecting to login...';
+        this.success = 'Account created successfully! You can now log in with your credentials. Redirecting to login...';
         
         // Redirect to login page after a delay
         setTimeout(() => {
-          this.$router.push('/auth/login');
+          window.location.href = '/auth/login';
         }, 3000);
       } catch (error) {
         this.error = error.message || 'Registration failed. Please try again.';
+        console.error('Registration error:', error);
       } finally {
         this.loading = false;
       }

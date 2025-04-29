@@ -31,13 +31,13 @@ export default {
    * @returns {Promise} - Auth response
    */
   async signIn(email, password) {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const response = await supabase.auth.signInWithPassword({
       email,
       password
     })
     
-    if (error) throw error
-    return data
+    // Return the full response with both data and error
+    return response
   },
   
   /**

@@ -46,7 +46,7 @@
           class="item-card"
         >
           <div class="item-image">
-            <img :src="item.image" :alt="item.title">
+            <img :src="item.image" :alt="item.title" v-img-fallback>
             <div class="item-status" :class="item.status">{{ item.status }}</div>
             <div class="item-actions">
               <button class="icon-btn edit" @click="editItem(item)">
@@ -89,7 +89,7 @@
           class="item-card wish-item"
         >
           <div class="item-image">
-            <img :src="item.image" :alt="item.title">
+            <img :src="item.image" :alt="item.title" v-img-fallback>
             <div class="item-actions">
               <button class="icon-btn edit" @click="editWishItem(item)">
                 <i class="fas fa-edit"></i>

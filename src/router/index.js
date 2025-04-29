@@ -4,7 +4,10 @@ import HomeView from '../views/HomeView.vue'
 // Navigation guard for protected routes
 const requireAuth = (to, from, next) => {
   const token = localStorage.getItem('token')
+  
   if (token) {
+    // If we have a token, we're authenticated
+    // The profile will be loaded in the component's mounted hook
     next()
   } else {
     next('/auth/login')
@@ -132,6 +135,11 @@ const routes = [
     path: '/help',
     name: 'help',
     component: () => import('../views/HelpView.vue')
+  },
+  {
+    path: '/item/:id',
+    name: 'item-detail',
+    component: () => import('../views/ItemDetailView.vue')
   }
 ]
 
