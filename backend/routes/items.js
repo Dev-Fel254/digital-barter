@@ -3,6 +3,7 @@ const router = express.Router();
 const {
     createItem,
     getItems,
+    getRecentItems,
     getUserItems,
     getItem,
     updateItem,
@@ -14,6 +15,7 @@ router.route('/')
     .get(getItems)
     .post(protect, createItem);
 
+router.get('/recent', getRecentItems);
 router.get('/myitems', protect, getUserItems);
 
 router.route('/:id')

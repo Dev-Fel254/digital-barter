@@ -8,6 +8,7 @@ import '@fortawesome/fontawesome-free/css/all.min.css'
 import { initFavicon, setFavicon } from './utils/faviconManager'
 import { initializeTestUsers } from './services/testUsers'
 import ImageUtils from './utils/imageUtils'
+import { setupAuthInterceptor } from './services/authService'
 
 const app = createApp(App)
 
@@ -19,6 +20,9 @@ initFavicon()
 
 // Initialize test users for the application
 initializeTestUsers()
+
+// Setup authentication interceptor for API requests
+setupAuthInterceptor()
 
 // Listen for auth state changes
 window.addEventListener('user-auth-change', () => {

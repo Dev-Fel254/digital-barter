@@ -1,5 +1,5 @@
 <template>
-  <section v-if="isAuthenticated" class="new-additions-section">
+  <section class="new-additions-section">
     <div class="container">
       <h2 class="section-title">NEW ADDITIONS</h2>
       
@@ -13,84 +13,54 @@
       </div>
       
       <div class="items-container">
-        <div class="items-wrapper" ref="itemsWrapper">
-           <!-- Item 1 -->
-          <div class="item-card">
-            <div class="item-image">
-              <img src="/images/items/shirt.jpg" alt="Blue shirt" v-img-fallback>
-              <div class="item-overlay">
-                <div class="overlay-buttons">
-                  <router-link :to="`/item/shirt`" class="overlay-btn view-btn" aria-label="View details">
-                    <i class="fas fa-eye"></i>
-                    <span class="tooltip">View Details</span>
-                  </router-link>
-                </div>
-              </div>
-              <div class="item-tag">New</div>
-            </div>
-            <div class="item-info">
-              <h3 class="item-title">Shirt</h3>
-              <p class="item-owner">Posted by Eli</p>
-            </div>
+        <div v-if="loading" class="loading-container">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
           </div>
-          
-          <!-- Item 2 -->
-          <div class="item-card">
+        </div>
+        
+        <div v-else-if="error" class="error-message">
+          <p>{{ error }}</p>
+        </div>
+        
+        <div v-else-if="items.length === 0" class="no-items-message">
+          <p>No items available yet. Be the first to add an item!</p>
+          <router-link to="/dashboard/add-item" class="btn btn-primary" v-if="isAuthenticated">
+            Add Item
+          </router-link>
+          <router-link to="/auth/login" class="btn btn-primary" v-else>
+            Login to Add Item
+          </router-link>
+        </div>
+        
+        <div v-else class="items-wrapper" ref="itemsWrapper">
+          <!-- Dynamic Items -->
+          <div v-for="item in items" :key="item._id" class="item-card">
             <div class="item-image">
-              <img src="" alt="Food" v-img-fallback>
+              <img 
+                :src="item.images && item.images.length > 0 ? item.images[0] : '/images/placeholder.jpg'" 
+                :alt="item.title" 
+                v-img-fallback
+              >
               <div class="item-overlay">
                 <div class="overlay-buttons">
-                  <router-link :to="`/item/food`" class="overlay-btn view-btn" aria-label="View details">
+                  <router-link :to="`/items/${item._id}`" class="overlay-btn view-btn" aria-label="View details">
                     <i class="fas fa-eye"></i>
                     <span class="tooltip">View Details</span>
                   </router-link>
                 </div>
               </div>
-              <div class="item-tag">New</div>
+              <div class="item-tag" v-if="isNewItem(item.createdAt)">New</div>
             </div>
             <div class="item-info">
-              <h3 class="item-title">Food</h3>
-              <p class="item-owner">Posted by Sara</p>
-            </div>
-          </div>
-          
-          <!-- Item 3 -->
-          <div class="item-card">
-            <div class="item-image">
-              <img src="/images/items/book.jpg" alt="Fairy Tale book" v-img-fallback>
-              <div class="item-overlay">
-                <div class="overlay-buttons">
-                  <router-link :to="`/item/fairy-tale`" class="overlay-btn view-btn" aria-label="View details">
-                    <i class="fas fa-eye"></i>
-                    <span class="tooltip">View Details</span>
-                  </router-link>
+              <h3 class="item-title">{{ item.title }}</h3>
+              <div class="item-owner-container">
+                <div class="owner-avatar">
+                  <img :src="item.user.profilePicture || '/images/default-avatar.jpg'" :alt="item.user.username">
+                  <span class="online-status" :class="{ 'online': item.user.isOnline }"></span>
                 </div>
+                <p class="item-owner">Posted by {{ item.user.firstName }} {{ item.user.lastName }}</p>
               </div>
-              <div class="item-tag">New</div>
-            </div>
-            <div class="item-info">
-              <h3 class="item-title">Fairy Tale</h3>
-              <p class="item-owner">Posted by Test</p>
-            </div>
-          </div>
-          
-          <!-- Item 4 -->
-          <div class="item-card">
-            <div class="item-image">
-              <img src="/images/items/iphone.jpg" alt="iPhone" v-img-fallback>
-              <div class="item-overlay">
-                <div class="overlay-buttons">
-                  <router-link :to="`/item/iphone`" class="overlay-btn view-btn" aria-label="View details">
-                    <i class="fas fa-eye"></i>
-                    <span class="tooltip">View Details</span>
-                  </router-link>
-                </div>
-              </div>
-              <div class="item-tag">New</div>
-            </div>
-            <div class="item-info">
-              <h3 class="item-title">iPhone</h3>
-              <p class="item-owner">Posted by Janetest</p>
             </div>
           </div>
         </div>
@@ -102,16 +72,53 @@
 </template>
 
 <script>
+import { ref, onMounted, computed } from 'vue';
+import { getRecentItems } from '@/services/itemService';
+
 export default {
   name: 'NewAdditions',
-  computed: {
-    isAuthenticated() {
+  setup() {
+    const items = ref([]);
+    const loading = ref(true);
+    const error = ref(null);
+    const itemsWrapper = ref(null);
+    
+    const isAuthenticated = computed(() => {
       return !!localStorage.getItem('token');
-    }
-  },
-  methods: {
-    scrollItems(direction) {
-      const container = this.$refs.itemsWrapper;
+    });
+    
+    const fetchRecentItems = async () => {
+      try {
+        loading.value = true;
+        error.value = null;
+        
+        // Fetch recent items with a limit of 10
+        const response = await getRecentItems(1, 10);
+        items.value = response.items;
+      } catch (err) {
+        console.error('Error fetching recent items:', err);
+        error.value = err.message || 'Failed to load recent items';
+      } finally {
+        loading.value = false;
+      }
+    };
+    
+    const isNewItem = (createdAt) => {
+      if (!createdAt) return false;
+      
+      // Consider items created in the last 3 days as new
+      const itemDate = new Date(createdAt);
+      const currentDate = new Date();
+      const diffTime = Math.abs(currentDate - itemDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      return diffDays <= 3;
+    };
+    
+    const scrollItems = (direction) => {
+      if (!itemsWrapper.value) return;
+      
+      const container = itemsWrapper.value;
       const scrollAmount = 300; // Adjust as needed
       
       if (direction === 'next') {
@@ -119,7 +126,21 @@ export default {
       } else {
         container.scrollLeft -= scrollAmount;
       }
-    }
+    };
+    
+    onMounted(() => {
+      fetchRecentItems();
+    });
+    
+    return {
+      items,
+      loading,
+      error,
+      itemsWrapper,
+      isAuthenticated,
+      isNewItem,
+      scrollItems
+    };
   }
 }
 </script>
@@ -191,6 +212,41 @@ export default {
     overflow: hidden;
     position: relative;
     margin: 0 -10px;
+    min-height: 200px;
+  }
+  
+  .loading-container,
+  .error-message,
+  .no-items-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .error-message {
+    color: #dc3545;
+  }
+  
+  .no-items-message {
+    p {
+      margin-bottom: 15px;
+      color: #666;
+    }
+    
+    .btn {
+      background-color: #FFD700;
+      border-color: #FFD700;
+      color: #333;
+      
+      &:hover {
+        background-color: darken(#FFD700, 10%);
+        border-color: darken(#FFD700, 10%);
+      }
+    }
   }
   
   .items-wrapper {
@@ -347,13 +403,53 @@ export default {
       color: #333;
       font-weight: 600;
       text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     
-    .item-owner {
-      font-size: 12px;
-      color: #777;
-      margin: 0;
-      text-align: center;
+    .item-owner-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 8px;
+      
+      .owner-avatar {
+        position: relative;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        overflow: hidden;
+        margin-bottom: 5px;
+        
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        
+        .online-status {
+          position: absolute;
+          bottom: 0;
+          right: 0;
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background-color: #ccc;
+          border: 1px solid white;
+          
+          &.online {
+            background-color: #4CAF50;
+          }
+        }
+      }
+      
+      .item-owner {
+        font-size: 12px;
+        color: #777;
+        margin: 0;
+        text-align: center;
+      }
     }
   }
 }

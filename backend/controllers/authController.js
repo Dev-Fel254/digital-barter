@@ -113,8 +113,12 @@ exports.login = async (req, res) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        // Update last login
+        // Update last login and set online status
         await user.updateLastLogin();
+        
+        // Set user as online
+        user.isOnline = true;
+        await user.save();
 
         res.json({
             _id: user._id,
@@ -128,6 +132,29 @@ exports.login = async (req, res) => {
             isPhoneVerified: user.isPhoneVerified,
             token: generateToken(user._id)
         });
+    } catch (error) {
+        res.status(500).json({ 
+            message: 'Server error', 
+            error: error.message 
+        });
+    }
+};
+
+// @desc    Logout user
+// @route   POST /api/auth/logout
+// @access  Private
+exports.logout = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Set user as offline
+        user.isOnline = false;
+        await user.save();
+
+        res.json({ message: 'Logged out successfully' });
     } catch (error) {
         res.status(500).json({ 
             message: 'Server error', 

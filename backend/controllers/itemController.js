@@ -27,13 +27,47 @@ exports.createItem = async (req, res) => {
 exports.getItems = async (req, res) => {
     try {
         const items = await Item.find()
-            .populate('user', 'username location rating')
+            .populate('user', 'firstName lastName username location rating profilePicture isOnline')
             .sort('-createdAt');
 
         res.json(items);
     } catch (error) {
         res.status(500).json({
             message: 'Error fetching items',
+            error: error.message
+        });
+    }
+};
+
+// @desc    Get recent items with pagination
+// @route   GET /api/items/recent
+// @access  Public
+exports.getRecentItems = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+        
+        const items = await Item.find()
+            .populate('user', 'firstName lastName username location rating profilePicture isOnline')
+            .sort('-createdAt')
+            .skip(skip)
+            .limit(limit);
+            
+        const total = await Item.countDocuments();
+        
+        res.json({
+            items,
+            pagination: {
+                currentPage: page,
+                totalPages: Math.ceil(total / limit),
+                totalItems: total,
+                hasMore: page < Math.ceil(total / limit)
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: 'Error fetching recent items',
             error: error.message
         });
     }
@@ -62,7 +96,7 @@ exports.getUserItems = async (req, res) => {
 exports.getItem = async (req, res) => {
     try {
         const item = await Item.findById(req.params.id)
-            .populate('user', 'username location rating');
+            .populate('user', 'firstName lastName username location rating profilePicture isOnline');
 
         if (!item) {
             return res.status(404).json({ message: 'Item not found' });
