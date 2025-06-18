@@ -75,6 +75,11 @@ const routes = [
         component: () => import('../views/dashboard/MyItemsView.vue')
       },
       {
+        path: 'add-item',
+        name: 'add-item',
+        component: () => import('../views/dashboard/AddItemView.vue')
+      },
+      {
         path: 'transactions',
         name: 'transactions',
         component: () => import('../views/dashboard/TransactionsView.vue')

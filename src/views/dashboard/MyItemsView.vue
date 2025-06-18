@@ -6,10 +6,10 @@
         <p>Manage your items for swapping</p>
       </div>
       <div class="header-actions">
-        <button class="action-btn primary" @click="showAddItemModal = true">
+        <router-link to="/dashboard/add-item" class="action-btn primary">
           <i class="fas fa-plus"></i>
           Add New Item
-        </button>
+        </router-link>
         <button class="action-btn secondary">
           <i class="fas fa-filter"></i>
           Filter
@@ -25,7 +25,7 @@
           :class="{ active: activeTab === 'swap' }"
           @click="activeTab = 'swap'"
         >
-          Items for Swap ({{ swapItems.length }})
+          Items for Swap ({{ userItems.length }})
         </button>
         <button 
           class="tab-btn" 
@@ -37,17 +37,29 @@
       </div>
     </div>
 
+    <!-- Loading State -->
+    <div v-if="loading" class="loading-container">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div v-if="error" class="alert alert-danger">
+      {{ error }}
+    </div>
+
     <!-- Items Grid -->
-    <div class="items-container" v-if="activeTab === 'swap' && swapItems.length > 0">
+    <div class="items-container" v-if="activeTab === 'swap' && userItems.length > 0">
       <div class="items-grid">
         <div 
-          v-for="item in swapItems" 
-          :key="item.id" 
+          v-for="item in userItems" 
+          :key="item._id" 
           class="item-card"
         >
           <div class="item-image">
-            <img :src="item.image" :alt="item.title" v-img-fallback>
-            <div class="item-status" :class="item.status">{{ item.status }}</div>
+            <img :src="item.images && item.images.length > 0 ? item.images[0] : '/images/placeholder.jpg'" :alt="item.title" v-img-fallback>
+            <div class="item-status" :class="item.status ? item.status.toLowerCase() : 'available'">{{ item.status || 'Available' }}</div>
             <div class="item-actions">
               <button class="icon-btn edit" @click="editItem(item)">
                 <i class="fas fa-edit"></i>
@@ -69,11 +81,11 @@
             </div>
             <p class="item-description">{{ item.description }}</p>
             <div class="item-footer">
-              <span class="views">
-                <i class="fas fa-eye"></i> {{ item.views }} views
+              <span class="value">
+                <i class="fas fa-dollar-sign"></i> ${{ item.estimatedValue || 0 }}
               </span>
-              <span class="offers">
-                <i class="fas fa-handshake"></i> {{ item.offers }} offers
+              <span class="condition">
+                <i class="fas fa-star"></i> {{ item.condition || 'Good' }}
               </span>
             </div>
           </div>
@@ -116,16 +128,16 @@
     </div>
 
     <!-- Empty States -->
-    <div class="empty-state" v-else-if="activeTab === 'swap' && swapItems.length === 0">
+    <div class="empty-state" v-else-if="activeTab === 'swap' && userItems.length === 0 && !loading">
       <i class="fas fa-box-open"></i>
       <h3>No Items for Swap</h3>
       <p>You haven't added any items for swapping yet.</p>
-      <button class="action-btn primary" @click="showAddItemModal = true">
+      <router-link to="/dashboard/add-item" class="action-btn primary">
         Add Your First Item
-      </button>
+      </router-link>
     </div>
 
-    <div class="empty-state" v-else-if="activeTab === 'wish' && wishItems.length === 0">
+    <div class="empty-state" v-else-if="activeTab === 'wish' && wishItems.length === 0 && !loading">
       <i class="fas fa-heart"></i>
       <h3>Your Wishlist is Empty</h3>
       <p>Add items you're looking for to your wishlist.</p>
@@ -133,118 +145,21 @@
         Add to Wishlist
       </button>
     </div>
-
-    <!-- Add Item Modal -->
-    <div class="modal-overlay" v-if="showAddItemModal" @click="showAddItemModal = false">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h2>Add New Item</h2>
-          <button class="close-btn" @click="showAddItemModal = false">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-        <div class="modal-body">
-          <form @submit.prevent="addItem">
-            <div class="form-group">
-              <label for="itemTitle">Item Title</label>
-              <input type="text" id="itemTitle" v-model="newItem.title" required>
-            </div>
-            <div class="form-group">
-              <label for="itemCategory">Category</label>
-              <select id="itemCategory" v-model="newItem.category" required>
-                <option value="">Select a category</option>
-                <option value="Electronics">Electronics</option>
-                <option value="Clothing">Clothing</option>
-                <option value="Books">Books</option>
-                <option value="Home">Home</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="itemDescription">Description</label>
-              <textarea id="itemDescription" v-model="newItem.description" rows="4" required></textarea>
-            </div>
-            <div class="form-group">
-              <label for="itemImage">Upload Image</label>
-              <div class="file-upload">
-                <input type="file" id="itemImage" @change="handleImageUpload">
-                <div class="upload-placeholder">
-                  <i class="fas fa-cloud-upload-alt"></i>
-                  <span>Click to upload or drag and drop</span>
-                </div>
-              </div>
-            </div>
-            <div class="form-actions">
-              <button type="button" class="btn-cancel" @click="showAddItemModal = false">Cancel</button>
-              <button type="submit" class="btn-submit">Add Item</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script>
+import { getUserItems, deleteItem } from '@/services/itemService';
+
 export default {
   name: 'MyItemsView',
   data() {
     return {
       activeTab: 'swap',
-      showAddItemModal: false,
       showAddWishItemModal: false,
-      newItem: {
-        title: '',
-        category: '',
-        description: '',
-        image: null
-      },
-      swapItems: [
-        {
-          id: 1,
-          title: 'iPhone 12 Pro',
-          description: 'Excellent condition, barely used. Comes with original box and accessories.',
-          category: 'Electronics',
-          image: 'https://via.placeholder.com/300x200?text=iPhone+12+Pro',
-          status: 'active',
-          createdAt: new Date('2025-03-15'),
-          views: 42,
-          offers: 3
-        },
-        {
-          id: 2,
-          title: 'Vintage Leather Jacket',
-          description: 'Genuine leather jacket in excellent condition. Size L, brown color.',
-          category: 'Clothing',
-          image: 'https://via.placeholder.com/300x200?text=Leather+Jacket',
-          status: 'active',
-          createdAt: new Date('2025-04-01'),
-          views: 28,
-          offers: 1
-        },
-        {
-          id: 3,
-          title: 'PlayStation 5',
-          description: 'Brand new PS5 with 2 controllers and 3 games included.',
-          category: 'Electronics',
-          image: 'https://via.placeholder.com/300x200?text=PlayStation+5',
-          status: 'pending',
-          createdAt: new Date('2025-04-10'),
-          views: 87,
-          offers: 5
-        },
-        {
-          id: 4,
-          title: 'Coffee Table Book Collection',
-          description: 'Set of 5 coffee table books on architecture and design.',
-          category: 'Books',
-          image: 'https://via.placeholder.com/300x200?text=Book+Collection',
-          status: 'active',
-          createdAt: new Date('2025-03-25'),
-          views: 15,
-          offers: 0
-        }
-      ],
+      loading: false,
+      error: null,
+      userItems: [],
       wishItems: [
         {
           id: 101,
@@ -270,11 +185,25 @@ export default {
       return this.$store.getters['user/userProfile'] || { name: 'Guest' };
     }
   },
-  mounted() {
+  async mounted() {
     // Fetch user profile if needed
     this.$store.dispatch('user/fetchUserProfile');
+    await this.fetchUserItems();
   },
   methods: {
+    async fetchUserItems() {
+      try {
+        this.loading = true;
+        this.error = null;
+        const items = await getUserItems();
+        this.userItems = items;
+      } catch (err) {
+        this.error = err.message || 'Failed to load your items';
+        console.error('Error fetching user items:', err);
+      } finally {
+        this.loading = false;
+      }
+    },
     formatDate(date) {
       return new Date(date).toLocaleDateString('en-US', {
         month: 'short',
@@ -282,49 +211,30 @@ export default {
         year: 'numeric'
       })
     },
-    handleImageUpload(event) {
-      const file = event.target.files[0]
-      if (file) {
-        this.newItem.image = URL.createObjectURL(file)
-      }
-    },
-    addItem() {
-      // Implementation would connect to backend API
-      const newItemWithId = {
-        ...this.newItem,
-        id: Date.now(),
-        status: 'active',
-        createdAt: new Date(),
-        views: 0,
-        offers: 0,
-        image: this.newItem.image || 'https://via.placeholder.com/300x200?text=New+Item'
-      }
-      
-      this.swapItems.unshift(newItemWithId)
-      this.showAddItemModal = false
-      this.newItem = {
-        title: '',
-        category: '',
-        description: '',
-        image: null
-      }
-    },
     editItem(item) {
       // Implementation would open edit modal with item data
-      console.log('Edit item:', item)
+      console.log('Edit item:', item);
+      alert('Edit functionality coming soon!');
     },
-    confirmDeleteItem(item) {
+    async confirmDeleteItem(item) {
       if (confirm(`Are you sure you want to delete "${item.title}"?`)) {
-        this.swapItems = this.swapItems.filter(i => i.id !== item.id)
+        try {
+          await deleteItem(item._id);
+          this.userItems = this.userItems.filter(i => i._id !== item._id);
+          alert('Item deleted successfully!');
+        } catch (error) {
+          alert('Failed to delete item: ' + error.message);
+        }
       }
     },
     editWishItem(item) {
       // Implementation would open edit modal with wishlist item data
-      console.log('Edit wishlist item:', item)
+      console.log('Edit wishlist item:', item);
+      alert('Edit wishlist functionality coming soon!');
     },
     confirmDeleteWishItem(item) {
       if (confirm(`Are you sure you want to remove "${item.title}" from your wishlist?`)) {
-        this.wishItems = this.wishItems.filter(i => i.id !== item.id)
+        this.wishItems = this.wishItems.filter(i => i.id !== item.id);
       }
     }
   }
@@ -376,6 +286,7 @@ export default {
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
+  text-decoration: none;
   
   &.primary {
     background: #FFD700;
@@ -436,6 +347,24 @@ export default {
   }
 }
 
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 3rem 0;
+}
+
+.alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  
+  &.alert-danger {
+    background-color: rgba(244, 67, 54, 0.1);
+    color: #f44336;
+    border: 1px solid rgba(244, 67, 54, 0.2);
+  }
+}
+
 .items-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -486,7 +415,7 @@ export default {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: transform 0.5s ease;
+      transition: transform 0.3s ease;
     }
     
     &:hover img {
@@ -504,7 +433,7 @@ export default {
       text-transform: capitalize;
       z-index: 1;
       
-      &.active {
+      &.available {
         background: rgba(46, 204, 113, 0.9);
         color: white;
       }
@@ -514,7 +443,7 @@ export default {
         color: #1a1a1a;
       }
       
-      &.inactive {
+      &.traded {
         background: rgba(149, 165, 166, 0.9);
         color: white;
       }
@@ -636,162 +565,6 @@ export default {
     font-size: 0.9rem;
     color: #666;
     margin-bottom: 1.5rem;
-  }
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.25rem;
-  border-bottom: 1px solid #eee;
-  
-  h2 {
-    font-size: 1.2rem;
-    color: #333;
-    margin: 0;
-  }
-  
-  .close-btn {
-    background: none;
-    border: none;
-    font-size: 1.2rem;
-    color: #999;
-    cursor: pointer;
-    
-    &:hover {
-      color: #333;
-    }
-  }
-}
-
-.modal-body {
-  padding: 1.25rem;
-}
-
-.form-group {
-  margin-bottom: 1.25rem;
-  
-  label {
-    display: block;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 0.5rem;
-  }
-  
-  input, select, textarea {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    
-    &:focus {
-      outline: none;
-      border-color: #FFD700;
-      box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
-    }
-  }
-  
-  textarea {
-    resize: vertical;
-  }
-}
-
-.file-upload {
-  position: relative;
-  border: 2px dashed #ddd;
-  border-radius: 6px;
-  padding: 2rem 1rem;
-  text-align: center;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    border-color: #FFD700;
-  }
-  
-  input[type="file"] {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    cursor: pointer;
-  }
-  
-  .upload-placeholder {
-    i {
-      font-size: 2rem;
-      color: #ddd;
-      margin-bottom: 0.5rem;
-      display: block;
-    }
-    
-    span {
-      font-size: 0.9rem;
-      color: #999;
-    }
-  }
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 1.5rem;
-  
-  button {
-    padding: 0.75rem 1.5rem;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  
-  .btn-cancel {
-    background: none;
-    border: 1px solid #ddd;
-    color: #666;
-    
-    &:hover {
-      background: #f5f5f5;
-    }
-  }
-  
-  .btn-submit {
-    background: #FFD700;
-    border: none;
-    color: #1a1a1a;
-    
-    &:hover {
-      background: darken(#FFD700, 10%);
-    }
   }
 }
 

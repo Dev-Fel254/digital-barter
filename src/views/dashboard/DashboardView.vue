@@ -40,6 +40,11 @@
             <i class="fas fa-box"></i>
             <span>My Items</span>
           </router-link>
+
+          <router-link to="/dashboard/add-item" class="menu-item" @click="closeMobileMenuOnClick">
+            <i class="fas fa-plus"></i>
+            <span>Add Item</span>
+          </router-link>
           
           <router-link to="/dashboard/messages" class="menu-item" @click="closeMobileMenuOnClick">
             <i class="fas fa-envelope"></i>
